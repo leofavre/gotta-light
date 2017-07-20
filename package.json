@@ -1,0 +1,25 @@
+{
+  "name": "type-lux-pixijs-redux",
+  "version": "0.0.1",
+  "description": "Exercising PixiJS and Redux while converting an old ActionScript project to WebGL 2D Canvas.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leofavre/type-lux-pixijs-redux.git"
+  },
+  "keywords": [
+    "PixiJS",
+    "Redux",
+    "Javascript",
+    "Animation"
+  ],
+  "author": "Leonardo Favre <leo@leofavre.com> (http://www.leofavre.com/)",
+  "license": "Unlicense",
+  "bugs": {
+    "url": "https://github.com/leofavre/type-lux-pixijs-redux/issues"
+  },
+  "homepage": "https://github.com/leofavre/type-lux-pixijs-redux#readme"
+}
