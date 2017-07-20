@@ -1,0 +1,7 @@
+node_modules/
+npm-debug.log
+.eslint
+.jsbeautifyrc
+.DS_Store
+*.sublime-project
+*.sublime-workspace
