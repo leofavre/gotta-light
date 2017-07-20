@@ -533,6 +533,4 @@ const stage = (state = initialStageDimensions, action) => {
 
 const store = createStore(stage);
 
-console.log(store.getState());
-
 }());
