@@ -25,5 +25,9 @@
   "dependencies": {
     "pixi.js": "^4.5.3",
     "redux": "^3.7.2"
+  },
+  "devDependencies": {
+    "rollup": "^0.45.2",
+    "rollup-plugin-node-resolve": "^3.0.0"
   }
 }
