@@ -40476,44 +40476,60 @@ global.PIXI = exports; // eslint-disable-line
 
 });
 
-let renderer = PIXI.autoDetectRenderer(150, 150);
-let stage = new PIXI.Container();
-let circle = new PIXI.Graphics();
+const getStageWidth = () => window.innerWidth;
+const getStageHeight = () => window.innerHeight;
 
-startRenderer(renderer);
-updateProportions(stage, renderer, window.innerWidth, window.innerHeight);
 
-window.addEventListener("resize", function() {
-	updateProportions(stage, renderer, window.innerWidth, window.innerHeight);
+
+/**/
+
+
+
+var app = new PIXI.Application(getStageWidth(), getStageHeight(), { backgroundColor: 0x000000 });
+document.body.appendChild(app.view);
+
+var container = new PIXI.Container();
+
+app.stage.addChild(container);
+
+// Create a new texture
+var texture = PIXI.Texture.fromImage("bunny.png");
+
+// Create a 5x5 grid of bunnies
+for (var i = 0; i < 25; i++) {
+	var bunny = new PIXI.Sprite(texture);
+	bunny.anchor.set(0.5);
+	bunny.x = (i % 5) * 15;
+	bunny.y = Math.floor(i / 5) * 80;
+	container.addChild(bunny);
+}
+
+// move container to the center
+container.x = app.renderer.width / 2;
+container.y = app.renderer.height / 2;
+
+// Center bunny sprite in local container coordinates
+container.pivot.x = 0;
+container.pivot.y = 0;
+
+app.renderer.autoResize = true;
+app.renderer.view.style.position = "absolute";
+app.renderer.view.style.display = "block";
+
+window.addEventListener("resize", evt => {
+	app.renderer.resize(getStageWidth(), getStageHeight());
+	container.x = app.renderer.width / 2;
+	container.y = app.renderer.height / 2;
+	app.renderer.render(app.stage);
 });
 
-circle.beginFill(0x00BFFF);
-circle.lineStyle(2);
-circle.drawCircle(0, 0, 100);
-circle.endFill();
-stage.addChild(circle);
+// Listen for animate update
 
-centerStageToRenderer(stage, renderer);
-renderer.render(stage);
-
-document.body.appendChild(renderer.view);
-
-function startRenderer(renderer) {
-	renderer.autoResize = true;
-	renderer.view.style.position = "absolute";
-	renderer.view.style.display = "block";
-}
-
-function updateProportions(stage, renderer, rendererWidth, rendererHeight) {
-	renderer.resize(rendererWidth, rendererHeight);
-	centerStageToRenderer(stage, renderer);
-	renderer.render(stage);
-}
-
-function centerStageToRenderer(stage, renderer) {
-	stage.x = (renderer.width / 2);
-	stage.y = (renderer.height / 2);
-}
+app.ticker.add(function(delta) {
+	// rotate the container!
+	// use delta to create frame-independent tranform
+	container.rotation -= 0.01 * delta;
+});
 
 
 
@@ -40522,9 +40538,6 @@ function centerStageToRenderer(stage, renderer) {
 
 
 const RESIZE_RENDERER = "RESIZE_RENDERER";
-
-const getStageWidth = () => window.innerWidth;
-const getStageHeight = () => window.innerHeight;
 
 const initialState = {
 	width: getStageWidth(),
@@ -40549,11 +40562,11 @@ const resizeStageBound = evt => store.dispatch({
 
 window.addEventListener("resize", resizeStageBound);
 
-const app = (state = {}, action) => ({
+const reduxApp = (state = {}, action) => ({
 	reduxRenderer: reduxRenderer(state.reduxRenderer, action)
 });
 
-const store = createStore(app);
+const store = createStore(reduxApp);
 
 console.log(store.getState());
 store.subscribe(() => console.log(store.getState()));
