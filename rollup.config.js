@@ -5,5 +5,5 @@ export default {
 	"entry": "./src/index.js",
 	"dest": "./dist/index.js",
 	"plugins": [nodeResolve(), commonjs()],
-	"format": "es"
+	"format": "iife"
 };

@@ -1,6 +1,11 @@
-import { createStore } from "redux";
+import createStore from "redux/es/createStore";
 
-const stage = (state, action) => {
+var initialStageDimensions = {
+	width: document.body.clientWidth,
+	height: document.body.clientHeight
+};
+
+const stage = (state = initialStageDimensions, action) => {
 	if (action.type === "RESIZE_STAGE") {
 		return {
 			width: action.width,
@@ -9,3 +14,5 @@ const stage = (state, action) => {
 	}
 	return state;
 };
+
+const store = createStore(stage);
