@@ -140,17 +140,22 @@ const calculateTopLeftCoord = (canvas, phrase, gap) => {
 	];
 };
 
-const calculateCoord = (xStart, yStart, xIndex, yIndex, gap) => [Math.round(xIndex * gap + xStart), Math.round(yIndex * gap + yStart)];
+const calculateCoord = (xStart, yStart, xIndex, yIndex, gap) =>
+	[Math.round(xIndex * gap + xStart), Math.round(yIndex * gap + yStart)];
+
+const calculateVisibleCoordsInLine = (line, lineIndex, xStart, yStart, gap) => {
+	return line
+		.map((dot, dotIndex) =>
+			!!dot ? calculateCoord(xStart, yStart, dotIndex, lineIndex, gap) : null)
+		.filter(coord => coord != null);
+};
 
 const calculateVisibleCoords = (canvas, phrase, gap) => {
 	let [xStart, yStart] = calculateTopLeftCoord(canvas, phrase, gap);
 
 	return phrase
-		.map((line, lineIndex) => {
-			return line
-				.map((dot, dotIndex) => !!dot ? calculateCoord(xStart, yStart, dotIndex, lineIndex, gap) : null)
-				.filter(coord => coord != null);
-		})
+		.map((line, lineIndex) =>
+			calculateVisibleCoordsInLine(line, lineIndex, xStart, yStart, gap))
 		.reduce(toFlatten);
 };
 
