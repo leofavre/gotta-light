@@ -4,7 +4,6 @@
   "description": "Exercising P5js and Redux while converting an old ActionScript project HTML Canvas.",
   "main": "./dist/index.js",
   "scripts": {
-    "build": "./node_modules/.bin/rollup -c -w",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
