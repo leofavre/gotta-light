@@ -107,7 +107,7 @@ const calculateDistanceBetweenCoords = (coordA, coordB) => {
 		.reduce(toSum));
 };
 
-const calculateRayScale = (lightSource, coord) => {
+const calculateRayScaleInPercent = (lightSource, coord) => {
 	let distanceToLightSource = calculateDistanceBetweenCoords(lightSource, coord),
 		scale = 1 - (distanceToLightSource / 500);
 
@@ -116,7 +116,7 @@ const calculateRayScale = (lightSource, coord) => {
 	return Math.max(Math.min(scale, 1), 0);
 };
 
-const calculateRayRotation = (lightSource, coord) => {
+const calculateRayRotationInDegrees = (lightSource, coord) => {
 	let relX = (lightSource[0] - coord[0]) * -1,
 		relY = (lightSource[1] - coord[1]) * -1,
 		dist = calculateDistanceBetweenCoords(lightSource, coord);
@@ -169,8 +169,8 @@ const render = () => {
 		return {
 			x,
 			y,
-			scale: calculateRayScale(lightSource, coord),
-			rotate: calculateRayRotation(lightSource, coord)
+			scale: calculateRayScaleInPercent(lightSource, coord),
+			rotate: calculateRayRotationInDegrees(lightSource, coord)
 		};
 	});
 
