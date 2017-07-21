@@ -12,7 +12,7 @@
     "url": "git+https://github.com/leofavre/type-lux-pixijs-redux.git"
   },
   "keywords": [
-    "PixiJS",
+    "P5js",
     "Redux",
     "Javascript",
     "Animation"
@@ -22,15 +22,5 @@
   "bugs": {
     "url": "https://github.com/leofavre/type-lux-pixijs-redux/issues"
   },
-  "homepage": "https://github.com/leofavre/type-lux-pixijs-redux#readme",
-  "dependencies": {
-    "pixi.js": "^4.5.3",
-    "redux": "^3.7.2"
-  },
-  "devDependencies": {
-    "rollup": "^0.45.2",
-    "rollup-plugin-commonjs": "^8.0.2",
-    "rollup-plugin-node-resolve": "^3.0.0",
-    "rollup-watch": "^4.3.1"
-  }
+  "homepage": "https://github.com/leofavre/type-lux-pixijs-redux#readme"
 }
