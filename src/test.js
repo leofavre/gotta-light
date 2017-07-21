@@ -1,4 +1,4 @@
-import createStore from "redux/es/createStore";
+// import createStore from "redux/es/createStore";
 
 const gotLight = [
 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0],
@@ -20,17 +20,17 @@ const gotLight = [
 ];
 
 const initialState = {
+	canvas: {
+		width: 800,
+		height: 600
+	},
 	lightSource: [0, 0],
 	phrase: gotLight,
 	ray: {
 		gap: 8,
 		width: 50,
 		height: 4
-	},
-	stage: {
-		width: 800,
-		height: 600
-	},
+	}
 };
 
 const updateGap = (state, action) => ({
@@ -77,7 +77,7 @@ const ray = (state = initialState.ray, action) => {
 	}
 };
 
-const stage = (state = initialState.stage, action) => {
+const canvas = (state = initialState.canvas, action) => {
 	switch (action.type) {
 		case "RESIZE_STAGE":
 			return updateSize(state, action);
@@ -87,30 +87,41 @@ const stage = (state = initialState.stage, action) => {
 	}
 };
 
-const app = (state, action) => {
+const app = (state = initialState, action) => {
 	return {
 		lightSource: lightSource(state.lightSource, action),
 		phrase: phrase(state.phrase, action),
 		ray: ray(state.ray, action),
-		state: state(state.state, action)
+		canvas: canvas(state.canvas, action)
 	};
 };
 
-const store = createStore(app);
+const store = Redux.createStore(app);
 
 const calculatePhraseWidthInPixels = (phrase, ray) => 1 + ray.gap * phrase[0].length;
 
 const calculatePhraseHeightInPixels = (phrase, ray) => 1 + ray.gap * phrase.length;
 
-const render = state => {
-	const { lightSource, phrase, ray, stage } = state;
-
+const calculatePhraseStartingCoords = (canvas, phrase, ray) => {
 	let phraseWidth = calculatePhraseWidthInPixels(phrase, ray),
 		phraseHeight = calculatePhraseHeightInPixels(phrase, ray);
 
+	return [(canvas.width - phraseWidth) / 2, (canvas.height - phraseHeight) / 2];
+};
+
+const render = () => {
+	const { lightSource, phrase, ray, canvas } = store.getState();
+	const [startX, startY] = calculatePhraseStartingCoords(canvas, phrase, ray);
+
 	phrase.forEach((line, lineIndex) => {
 		line.forEach((dot, dotIndex) => {
-
+			console.log([
+				Math.round(dotIndex * ray.gap + startX),
+				Math.round(lineIndex * ray.gap + startY)
+			]);
 		});
 	});
 };
+
+render();
+store.subscribe(render);
