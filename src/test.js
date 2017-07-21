@@ -100,32 +100,36 @@ const calculatePhraseWidthInPixels = (phrase, gap) => 1 + gap * phrase[0].length
 
 const calculatePhraseHeightInPixels = (phrase, gap) => 1 + gap * phrase.length;
 
-const calculatePhraseStartCoords = (canvas, phrase, gap) => {
+const calculateTopLeftCoord = (canvas, phrase, gap) => {
 	let phraseWidth = calculatePhraseWidthInPixels(phrase, gap),
 		phraseHeight = calculatePhraseHeightInPixels(phrase, gap);
 
 	return [
-		(canvas.width - phraseWidth) / 2,
-		(canvas.height - phraseHeight) / 2
+		Math.round((canvas.width - phraseWidth) / 2),
+		Math.round((canvas.height - phraseHeight) / 2)
 	];
 };
 
+const calculateCoord = (xStart, yStart, xIndex, yIndex, gap) =>
+	[Math.round(xIndex * gap + xStart), Math.round(yIndex * gap + yStart)];
+
+const calculateVisibleCoords = (canvas, phrase, gap) => {
+	let [xStart, yStart] = calculateTopLeftCoord(canvas, phrase, gap);
+
+	return phrase
+		.map((line, lineIndex) => {
+			return line
+				.map((dot, dotIndex) => !!dot ? calculateCoord(xStart, yStart, dotIndex, lineIndex, gap) : null)
+				.filter(coord => coord != null);
+		})
+		.reduce((result, nextArr) => result.concat(nextArr), []);
+};
+
 const render = () => {
-	const { lightSource, phrase, ray, canvas } = store.getState();
+	let { lightSource, phrase, ray, canvas } = store.getState(),
+		visibleCoords = calculateVisibleCoords(canvas, phrase, ray.gap);
 
-	let gap = ray.gap,
-		[startX, startY] = calculatePhraseStartCoords(canvas, phrase, gap);
-
-	phrase.forEach((line, lineIndex) => {
-		line.forEach((dot, dotIndex) => {
-			if (dot === 1) {
-				console.log([
-					Math.round(dotIndex * gap + startX),
-					Math.round(lineIndex * gap + startY)
-				]);
-			}
-		});
-	});
+	console.log(visibleCoords);
 };
 
 render();
