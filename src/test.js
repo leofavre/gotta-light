@@ -87,39 +87,43 @@ const canvas = (state = initialState.canvas, action) => {
 	}
 };
 
-const app = (state = initialState, action) => {
-	return {
-		lightSource: lightSource(state.lightSource, action),
-		phrase: phrase(state.phrase, action),
-		ray: ray(state.ray, action),
-		canvas: canvas(state.canvas, action)
-	};
-};
+const app = Redux.combineReducers({
+	lightSource,
+	phrase,
+	ray,
+	canvas
+});
 
 const store = Redux.createStore(app);
 
-const calculatePhraseWidthInPixels = (phrase, ray) => 1 + ray.gap * phrase[0].length;
+const calculatePhraseWidthInPixels = (phrase, gap) => 1 + gap * phrase[0].length;
 
-const calculatePhraseHeightInPixels = (phrase, ray) => 1 + ray.gap * phrase.length;
+const calculatePhraseHeightInPixels = (phrase, gap) => 1 + gap * phrase.length;
 
-const calculatePhraseStartCoords = (canvas, phrase, ray) => {
-	let phraseWidth = calculatePhraseWidthInPixels(phrase, ray),
-		phraseHeight = calculatePhraseHeightInPixels(phrase, ray);
+const calculatePhraseStartCoords = (canvas, phrase, gap) => {
+	let phraseWidth = calculatePhraseWidthInPixels(phrase, gap),
+		phraseHeight = calculatePhraseHeightInPixels(phrase, gap);
 
-	return [(canvas.width - phraseWidth) / 2, (canvas.height - phraseHeight) / 2];
+	return [
+		(canvas.width - phraseWidth) / 2,
+		(canvas.height - phraseHeight) / 2
+	];
 };
 
 const render = () => {
-	const { lightSource, phrase, ray, canvas } = store.getState(),
-		[startX, startY] = calculatePhraseStartCoords(canvas, phrase, ray),
-		gap = ray.gap;
+	const { lightSource, phrase, ray, canvas } = store.getState();
+
+	let gap = ray.gap,
+		[startX, startY] = calculatePhraseStartCoords(canvas, phrase, gap);
 
 	phrase.forEach((line, lineIndex) => {
 		line.forEach((dot, dotIndex) => {
-			console.log([
-				Math.round(dotIndex * gap + startX),
-				Math.round(lineIndex * gap + startY)
-			]);
+			if (dot === 1) {
+				console.log([
+					Math.round(dotIndex * gap + startX),
+					Math.round(lineIndex * gap + startY)
+				]);
+			}
 		});
 	});
 };
