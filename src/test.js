@@ -102,7 +102,7 @@ const calculatePhraseWidthInPixels = (phrase, ray) => 1 + ray.gap * phrase[0].le
 
 const calculatePhraseHeightInPixels = (phrase, ray) => 1 + ray.gap * phrase.length;
 
-const calculatePhraseStartingCoords = (canvas, phrase, ray) => {
+const calculatePhraseStartCoords = (canvas, phrase, ray) => {
 	let phraseWidth = calculatePhraseWidthInPixels(phrase, ray),
 		phraseHeight = calculatePhraseHeightInPixels(phrase, ray);
 
@@ -110,14 +110,15 @@ const calculatePhraseStartingCoords = (canvas, phrase, ray) => {
 };
 
 const render = () => {
-	const { lightSource, phrase, ray, canvas } = store.getState();
-	const [startX, startY] = calculatePhraseStartingCoords(canvas, phrase, ray);
+	const { lightSource, phrase, ray, canvas } = store.getState(),
+		[startX, startY] = calculatePhraseStartCoords(canvas, phrase, ray),
+		gap = ray.gap;
 
 	phrase.forEach((line, lineIndex) => {
 		line.forEach((dot, dotIndex) => {
 			console.log([
-				Math.round(dotIndex * ray.gap + startX),
-				Math.round(lineIndex * ray.gap + startY)
+				Math.round(dotIndex * gap + startX),
+				Math.round(lineIndex * gap + startY)
 			]);
 		});
 	});
