@@ -25,7 +25,7 @@ const initialState = {
 		width: 800,
 		height: 600
 	},
-	lightSource: [0, 0],
+	lightSource: [400, 300],
 	phrase: gotLight,
 	ray: {
 		gap: 8,
@@ -97,6 +97,35 @@ const app = Redux.combineReducers({
 
 const store = Redux.createStore(app);
 
+const toFlatten = (prevArr, nextArr) => prevArr.concat(nextArr);
+
+const toSum = (prevNum, nextNum) => prevNum + nextNum;
+
+const calculateDistanceBetweenCoords = (coordA, coordB) => {
+	return Math.sqrt(coordA
+		.map((coord, index) => Math.pow(coord - coordB[index], 2))
+		.reduce(toSum));
+};
+
+const calculateRayScale = (lightSource, coord) => {
+	let distanceToLightSource = calculateDistanceBetweenCoords(lightSource, coord),
+		scale = 1 - (distanceToLightSource / 500);
+
+	// TO DO: change this '500' value to something parameterized?
+
+	return Math.max(Math.min(scale, 1), 0);
+};
+
+const calculateRayRotation = (lightSource, coord) => {
+	let relX = (lightSource[0] - coord[0]) * -1,
+		relY = (lightSource[1] - coord[1]) * -1,
+		dist = calculateDistanceBetweenCoords(lightSource, coord);
+
+	let k = (relY < 0) ? -1 : 1;
+
+	return k * Math.acos(relX / dist) * 180 / Math.PI;
+};
+
 const calculatePhraseWidthInPixels = (phrase, gap) => 1 + gap * phrase[0].length;
 
 const calculatePhraseHeightInPixels = (phrase, gap) => 1 + gap * phrase.length;
@@ -111,8 +140,7 @@ const calculateTopLeftCoord = (canvas, phrase, gap) => {
 	];
 };
 
-const calculateCoord = (xStart, yStart, xIndex, yIndex, gap) =>
-	[Math.round(xIndex * gap + xStart), Math.round(yIndex * gap + yStart)];
+const calculateCoord = (xStart, yStart, xIndex, yIndex, gap) => [Math.round(xIndex * gap + xStart), Math.round(yIndex * gap + yStart)];
 
 const calculateVisibleCoords = (canvas, phrase, gap) => {
 	let [xStart, yStart] = calculateTopLeftCoord(canvas, phrase, gap);
@@ -123,14 +151,25 @@ const calculateVisibleCoords = (canvas, phrase, gap) => {
 				.map((dot, dotIndex) => !!dot ? calculateCoord(xStart, yStart, dotIndex, lineIndex, gap) : null)
 				.filter(coord => coord != null);
 		})
-		.reduce((result, nextArr) => result.concat(nextArr), []);
+		.reduce(toFlatten);
 };
 
 const render = () => {
 	let { lightSource, phrase, ray, canvas } = store.getState(),
 		visibleCoords = calculateVisibleCoords(canvas, phrase, ray.gap);
 
-	console.log(visibleCoords);
+	let result = visibleCoords.map(coord => {
+		let [x, y] = coord;
+
+		return {
+			x,
+			y,
+			scale: calculateRayScale(lightSource, coord),
+			rotate: calculateRayRotation(lightSource, coord)
+		};
+	});
+
+	console.log(result);
 };
 
 render();
