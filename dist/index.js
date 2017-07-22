@@ -112,7 +112,7 @@ const app = Redux.combineReducers({
 	canvas
 });
 
-const store = Redux.createStore(app);
+const store = Redux.createStore(app, initialState);
 
 const toFlatten = (prevArr, nextArr) => prevArr.concat(nextArr);
 
@@ -176,41 +176,54 @@ const calculateVisibleCoords = (canvas, phrase, gap) => {
 };
 
 const render = parentElement => {
-	let lastState = {};
 	parentElement.innerHTML = `<canvas></canvas>`;
+	const element = parentElement.children[0];
+	const context = element.getContext('2d');
+
+	let lastState = {};
 
 	return () => {
 		let state = store.getState(),
-			element = parentElement.children[0],
 			{ lightSource, phrase, ray, canvas } = state,
 			visibleCoords = calculateVisibleCoords(canvas, phrase, ray.gap);
 
-		console.log(state, lastState);
-
 		if (lastState.canvas == null || state.canvas.width !== lastState.canvas.width) {
 			element.setAttribute("width", state.canvas.width);
-
-			lastState.canvas = { ...state.canvas };
 		}
 
 		if (lastState.canvas == null || state.canvas.height !== lastState.canvas.height) {
 			element.setAttribute("height", state.canvas.height);
-
-			lastState.canvas = { ...state.canvas };
 		}
 
-		/*
-		let result = visibleCoords.map(coord => {
+		context.clearRect(0, 0, state.canvas.width, state.canvas.height);
+
+		visibleCoords.forEach(coord => {
 			let [x, y] = coord;
 
+			context.beginPath();
+			context.moveTo(x, y);
+			context.lineTo(x + 25, y + 5);
+			context.lineWidth = 1;
+			context.strokeStyle = '#ff0000';
+			context.stroke();
+
+			/*
 			return {
 				x,
 				y,
 				scale: calculateRayScaleInPercent(lightSource, coord),
 				rotate: calculateRayRotationInDegrees(lightSource, coord)
 			};
+			*/
 		});
-		*/
+	
+		lastState = {
+			...state,
+			canvas: { ...state.canvas },
+			lightSource: { ...state.lightSource },
+			phrase: { ...state.phrase },
+			ray: { ...state.ray }
+		};
 	};
 };
 
@@ -223,3 +236,4 @@ document.addEventListener("mousemove", evt =>
 const parentElement = document.getElementById("root");
 
 store.subscribe(render(parentElement));
+store.dispatch(resizeStage(window.innerWidth, window.innerHeight));
