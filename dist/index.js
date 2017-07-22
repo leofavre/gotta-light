@@ -1,6 +1,3 @@
-// import createStore from "redux/es/createStore";
-// import combineReducers from "redux/es/combineReducers";
-
 const gotLight = [
 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0],
 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0],
@@ -22,10 +19,13 @@ const gotLight = [
 
 const initialState = {
 	canvas: {
-		width: 800,
-		height: 600
+		width: window.innerWidth,
+		height: window.innerHeight
 	},
-	lightSource: [400, 300],
+	lightSource: [
+		Math.round(window.innerWidth / 2),
+		Math.round(window.innerHeight / 2)
+	],
 	phrase: gotLight,
 	ray: {
 		gap: 8,
@@ -33,6 +33,23 @@ const initialState = {
 		height: 4
 	}
 };
+
+const UPDATE_LIGHT_SOURCE = "UPDATE_LIGHT_SOURCE";
+const UPDATE_PHRASE = "UPDATE_PHRASE";
+const UPDATE_RAY_GAP = "UPDATE_RAY_GAP";
+const RESIZE_RAY = "RESIZE_RAY";
+const RESIZE_STAGE = "RESIZE_STAGE";
+
+const updateLightSource = (x, y) => ({
+	type: UPDATE_LIGHT_SOURCE,
+	coords: [x, y]
+});
+
+const resizeStage = (width, height) => ({
+	type: RESIZE_STAGE,
+	width,
+	height
+});
 
 const updateGap = (state, action) => ({
 	...state,
@@ -47,7 +64,7 @@ const updateSize = (state, action) => ({
 
 const lightSource = (state = initialState.lightSource, action) => {
 	switch (action.type) {
-		case "UPDATE_LIGHT_SOURCE":
+		case UPDATE_LIGHT_SOURCE:
 			return action.coords;
 
 		default:
@@ -57,7 +74,7 @@ const lightSource = (state = initialState.lightSource, action) => {
 
 const phrase = (state = initialState.phrase, action) => {
 	switch (action.type) {
-		case "UPDATE_PHRASE":
+		case UPDATE_PHRASE:
 			return action.source;
 
 		default:
@@ -67,10 +84,10 @@ const phrase = (state = initialState.phrase, action) => {
 
 const ray = (state = initialState.ray, action) => {
 	switch (action.type) {
-		case "UPDATE_RAY_GAP":
+		case UPDATE_RAY_GAP:
 			return updateGap(state, action);
 
-		case "RESIZE_RAY":
+		case RESIZE_RAY:
 			return updateSize(state, action);
 
 		default:
@@ -80,7 +97,7 @@ const ray = (state = initialState.ray, action) => {
 
 const canvas = (state = initialState.canvas, action) => {
 	switch (action.type) {
-		case "RESIZE_STAGE":
+		case RESIZE_STAGE:
 			return updateSize(state, action);
 
 		default:
@@ -140,8 +157,7 @@ const calculateTopLeftCoord = (canvas, phrase, gap) => {
 	];
 };
 
-const calculateCoord = (xStart, yStart, xIndex, yIndex, gap) =>
-	[Math.round(xIndex * gap + xStart), Math.round(yIndex * gap + yStart)];
+const calculateCoord = (xStart, yStart, xIndex, yIndex, gap) => [Math.round(xIndex * gap + xStart), Math.round(yIndex * gap + yStart)];
 
 const calculateVisibleCoordsInLine = (line, lineIndex, xStart, yStart, gap) => {
 	return line
@@ -159,23 +175,51 @@ const calculateVisibleCoords = (canvas, phrase, gap) => {
 		.reduce(toFlatten);
 };
 
-const render = () => {
-	let { lightSource, phrase, ray, canvas } = store.getState(),
-		visibleCoords = calculateVisibleCoords(canvas, phrase, ray.gap);
+const render = parentElement => {
+	let lastState = {};
+	parentElement.innerHTML = `<canvas></canvas>`;
 
-	let result = visibleCoords.map(coord => {
-		let [x, y] = coord;
+	return () => {
+		let state = store.getState(),
+			element = parentElement.children[0],
+			{ lightSource, phrase, ray, canvas } = state,
+			visibleCoords = calculateVisibleCoords(canvas, phrase, ray.gap);
 
-		return {
-			x,
-			y,
-			scale: calculateRayScaleInPercent(lightSource, coord),
-			rotate: calculateRayRotationInDegrees(lightSource, coord)
-		};
-	});
+		console.log(state, lastState);
 
-	console.log(result);
+		if (lastState.canvas == null || state.canvas.width !== lastState.canvas.width) {
+			element.setAttribute("width", state.canvas.width);
+
+			lastState.canvas = { ...state.canvas };
+		}
+
+		if (lastState.canvas == null || state.canvas.height !== lastState.canvas.height) {
+			element.setAttribute("height", state.canvas.height);
+
+			lastState.canvas = { ...state.canvas };
+		}
+
+		/*
+		let result = visibleCoords.map(coord => {
+			let [x, y] = coord;
+
+			return {
+				x,
+				y,
+				scale: calculateRayScaleInPercent(lightSource, coord),
+				rotate: calculateRayRotationInDegrees(lightSource, coord)
+			};
+		});
+		*/
+	};
 };
 
-render();
-store.subscribe(render);
+window.addEventListener("resize", evt =>
+	store.dispatch(resizeStage(window.innerWidth, window.innerHeight)));
+
+document.addEventListener("mousemove", evt =>
+	store.dispatch(updateLightSource(evt.clientX, evt.clientY)));
+
+const parentElement = document.getElementById("root");
+
+store.subscribe(render(parentElement));
