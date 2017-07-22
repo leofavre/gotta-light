@@ -198,23 +198,16 @@ const render = parentElement => {
 		context.clearRect(0, 0, state.canvas.width, state.canvas.height);
 
 		visibleCoords.forEach(coord => {
-			let [x, y] = coord;
+			let [x, y] = coord,
+				scale = calculateRayScaleInPercent(lightSource, coord);
 
+			context.fillStyle = '#f1f1f1';
 			context.beginPath();
 			context.moveTo(x, y);
-			context.lineTo(x + 25, y + 5);
-			context.lineWidth = 1;
-			context.strokeStyle = '#ff0000';
-			context.stroke();
-
-			/*
-			return {
-				x,
-				y,
-				scale: calculateRayScaleInPercent(lightSource, coord),
-				rotate: calculateRayRotationInDegrees(lightSource, coord)
-			};
-			*/
+			context.lineTo(x + (state.ray.width * scale), y - (state.ray.height / 2));
+			context.lineTo(x + (state.ray.width * scale), y + (state.ray.height / 2));
+			context.closePath();
+			context.fill();
 		});
 	
 		lastState = {
