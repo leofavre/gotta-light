@@ -1,17 +1,17 @@
 {
-  "name": "type-lux-p5js-redux",
+  "name": "type-lux-canvas-redux",
   "version": "0.0.1",
-  "description": "Exercising P5js and Redux while converting an old ActionScript project HTML Canvas.",
+  "description": "Exercising HTML Canvas and Redux while converting an old ActionScript project.",
   "main": "./dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/leofavre/type-lux-p5js-redux.git"
+    "url": "git+https://github.com/leofavre/type-lux-canvas-redux.git"
   },
   "keywords": [
-    "P5js",
+    "Canvas",
     "Redux",
     "Javascript",
     "Animation"
@@ -19,7 +19,7 @@
   "author": "Leonardo Favre <leo@leofavre.com> (http://www.leofavre.com/)",
   "license": "Unlicense",
   "bugs": {
-    "url": "https://github.com/leofavre/type-lux-p5js-redux/issues"
+    "url": "https://github.com/leofavre/type-lux-canvas-redux/issues"
   },
-  "homepage": "https://github.com/leofavre/type-lux-p5js-redux#readme"
+  "homepage": "https://github.com/leofavre/type-lux-canvas-redux#readme"
 }

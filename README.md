@@ -1,1 +1,1 @@
-# Type Lux P5js Redux
+# Type Lux Canvas Redux
