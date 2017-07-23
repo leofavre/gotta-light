@@ -187,26 +187,38 @@ const render = parentElement => {
 			{ lightSource, phrase, ray, canvas } = state,
 			visibleCoords = calculatePhraseVisibleCoords(canvas, phrase, ray.gap);
 
-		element.setAttribute("width", state.canvas.width);
-		element.setAttribute("height", state.canvas.height);
+		updateCanvasSize(element, canvas.width, canvas.height);
+		cleanUpCanvas(context, canvas.width, canvas.height);
 
-		context.clearRect(0, 0, state.canvas.width, state.canvas.height);
-
-		visibleCoords.forEach(coord => {
-			let distance = calculateRayDistance(lightSource, coord, state.ray.width),
-				rotation = calculateRayRotation(lightSource, coord);
-
-			let [x1, y1] = coord, [x2, y2] = translateAndRotateCoord(coord, distance, rotation - 0.05), /* 0.05 may be parameterized */ [x3, y3] = translateAndRotateCoord(coord, distance, rotation + 0.05); /* 0.05 may be parameterized */
-
-			context.fillStyle = '#f1f1f1';
-			context.beginPath();
-			context.moveTo(x1, y1);
-			context.lineTo(x2, y2);
-			context.lineTo(x3, y3);
-			context.closePath();
-			context.fill();
-		});
+		visibleCoords.forEach(coord =>
+			drawRay(context, lightSource, coord, ray.width));
 	};
+};
+
+const updateCanvasSize = (element, width, height) => {
+	element.setAttribute("width", width);
+	element.setAttribute("height", height);
+};
+
+const cleanUpCanvas = (context, width, height) => {
+	context.clearRect(0, 0, width, height);
+};
+
+const drawRay = (context, lightSource, coord, rayWidth) => {
+	let distance = calculateRayDistance(lightSource, coord, rayWidth),
+		rotation = calculateRayRotation(lightSource, coord);
+
+	let [x1, y1] = coord,
+		[x2, y2] = translateAndRotateCoord(coord, distance, rotation - 0.05), /* 0.05 may be parameterized */
+		[x3, y3] = translateAndRotateCoord(coord, distance, rotation + 0.05); /* 0.05 may be parameterized */
+
+	context.fillStyle = '#f1f1f1';
+	context.beginPath();
+	context.moveTo(x1, y1);
+	context.lineTo(x2, y2);
+	context.lineTo(x3, y3);
+	context.closePath();
+	context.fill();
 };
 
 const parentElement = document.getElementById("root");
