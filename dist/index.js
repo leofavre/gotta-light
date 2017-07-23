@@ -23,8 +23,8 @@ const initialState = {
 		height: window.innerHeight
 	},
 	lightSource: [
-		Math.round(window.innerWidth / 2),
-		Math.round(window.innerHeight / 2)
+		Math.round(window.innerWidth / 3),
+		Math.round(window.innerHeight / 3)
 	],
 	phrase: gotLight,
 	ray: {
@@ -148,13 +148,13 @@ const calculateRayDistance = (lightSource, coord, width) => {
 const calculateRayRotation = (lightSource, coord) =>
 	calculateAngleBetweenLineAndXAxis(lightSource, coord);
 
-const calculatePhraseWidthInPixels = (phrase, gap) => Math.round(1 + gap * phrase[0].length);
+const calculatePhraseWidth = (phrase, gap) => Math.round(1 + gap * phrase[0].length);
 
-const calculatePhraseHeightInPixels = (phrase, gap) => Math.round(1 + gap * phrase.length);
+const calculatePhraseHeight = (phrase, gap) => Math.round(1 + gap * phrase.length);
 
-const calculateTopLeftCoord = (canvas, phrase, gap) => {
-	let phraseWidth = calculatePhraseWidthInPixels(phrase, gap),
-		phraseHeight = calculatePhraseHeightInPixels(phrase, gap);
+const calculatePhraseTopLeftCoord = (canvas, phrase, gap) => {
+	let phraseWidth = calculatePhraseWidth(phrase, gap),
+		phraseHeight = calculatePhraseHeight(phrase, gap);
 
 	return [
 		Math.round((canvas.width - phraseWidth) / 2),
@@ -162,21 +162,21 @@ const calculateTopLeftCoord = (canvas, phrase, gap) => {
 	];
 };
 
-const calculateCoord = (xStart, yStart, xIndex, yIndex, gap) => [Math.round(xIndex * gap + xStart), Math.round(yIndex * gap + yStart)];
+const calculatePhraseCoord = (xStart, yStart, xIndex, yIndex, gap) => [Math.round(xIndex * gap + xStart), Math.round(yIndex * gap + yStart)];
 
-const calculateVisibleCoordsInLine = (line, lineIndex, xStart, yStart, gap) => {
+const calculatePhraseVisibleCoordsInLine = (line, lineIndex, xStart, yStart, gap) => {
 	return line
 		.map((dot, dotIndex) =>
-			!!dot ? calculateCoord(xStart, yStart, dotIndex, lineIndex, gap) : null)
+			!!dot ? calculatePhraseCoord(xStart, yStart, dotIndex, lineIndex, gap) : null)
 		.filter(coord => coord != null);
 };
 
-const calculateVisibleCoords = (canvas, phrase, gap) => {
-	let [xStart, yStart] = calculateTopLeftCoord(canvas, phrase, gap);
+const calculatePhraseVisibleCoords = (canvas, phrase, gap) => {
+	let [xStart, yStart] = calculatePhraseTopLeftCoord(canvas, phrase, gap);
 
 	return phrase
 		.map((line, lineIndex) =>
-			calculateVisibleCoordsInLine(line, lineIndex, xStart, yStart, gap))
+			calculatePhraseVisibleCoordsInLine(line, lineIndex, xStart, yStart, gap))
 		.reduce(toFlatten);
 };
 
@@ -190,7 +190,7 @@ const render = parentElement => {
 	return () => {
 		let state = store.getState(),
 			{ lightSource, phrase, ray, canvas } = state,
-			visibleCoords = calculateVisibleCoords(canvas, phrase, ray.gap);
+			visibleCoords = calculatePhraseVisibleCoords(canvas, phrase, ray.gap);
 
 		if (lastState.canvas == null || state.canvas.width !== lastState.canvas.width) {
 			element.setAttribute("width", state.canvas.width);
