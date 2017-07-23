@@ -316,17 +316,15 @@ const parentElement = document.getElementById("root"),
 	rayApertureInput = document.getElementById("ray-aperture-input"),
 	rayReachInput = document.getElementById("ray-reach-input");
 
-phraseGapInput.addEventListener("input", evt =>
-	store.dispatch(updatePhraseGap(evt.target.value)));
+const controlViaInput = (inputEl, callback) => {
+	inputEl.addEventListener("input", evt =>
+		store.dispatch(callback(evt.target.value)));
+};
 
-lightReachInput.addEventListener("input", evt =>
-	store.dispatch(updateLightReach(evt.target.value)));
-
-rayApertureInput.addEventListener("input", evt =>
-	store.dispatch(updateRayAperture(evt.target.value)));
-
-rayReachInput.addEventListener("input", evt =>
-	store.dispatch(updateRayReach(evt.target.value)));
+controlViaInput(phraseGapInput, updatePhraseGap);
+controlViaInput(lightReachInput, updateLightReach);
+controlViaInput(rayApertureInput, updateRayAperture);
+controlViaInput(rayReachInput, updateRayReach);
 
 window.addEventListener("resize", evt =>
 	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
