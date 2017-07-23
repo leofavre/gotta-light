@@ -170,7 +170,7 @@ const Ray = {
 	}
 };
 
-const Phrase = (function(){
+const Phrase = (function() {
 	const calculateVisibleCoords = (canvas, source, gap) => {
 		let [xStart, yStart] = _calculateInitialCoord(canvas, source, gap);
 
@@ -213,8 +213,8 @@ const Phrase = (function(){
 	};
 })();
 
-class Canvas {
-	static render(parentElement) {
+const Canvas = (function() {
+	const render = (parentElement) => {
 		parentElement.innerHTML = `<canvas></canvas>`;
 		const element = parentElement.children[0];
 		const context = element.getContext('2d');
@@ -224,27 +224,27 @@ class Canvas {
 				{ light, phrase, ray, canvas } = state,
 				visibleCoords = Phrase.calculateVisibleCoords(canvas, phrase.source, phrase.gap);
 
-			this._updateCanvasDimensions(element, canvas.width, canvas.height);
-			this._cleanUpCanvas(context, canvas.width, canvas.height);
-			this._drawCanvas(visibleCoords, context, light, ray);
+			_updateCanvasDimensions(element, canvas.width, canvas.height);
+			_cleanUpCanvas(context, canvas.width, canvas.height);
+			_drawCanvas(visibleCoords, context, light, ray);
 		};
 	};
 
-	static _updateCanvasDimensions(element, width, height) {
+	const _updateCanvasDimensions = (element, width, height) => {
 		element.setAttribute("width", width);
 		element.setAttribute("height", height);
 	};
 
-	static _cleanUpCanvas(context, width, height) {
+	const _cleanUpCanvas = (context, width, height) => {
 		context.clearRect(0, 0, width, height);
 	};
 
-	static _drawCanvas(visibleCoords, context, light, ray) {
+	const _drawCanvas = (visibleCoords, context, light, ray) => {
 		visibleCoords.forEach(rayCoord =>
-			this._drawRay(context, light.reach, light.coord, ray.reach, rayCoord, ray.aperture));
+			_drawRay(context, light.reach, light.coord, ray.reach, rayCoord, ray.aperture));
 	};
 
-	static _drawRay(context, lightReach, lightCoord, rayReach, rayCoord, rayAperture) {
+	const _drawRay = (context, lightReach, lightCoord, rayReach, rayCoord, rayAperture) => {
 		let distance = Ray.calculateDistance(lightReach, lightCoord, rayReach, rayCoord),
 			rotationInRadians = Ray.calculateRotation(lightCoord, rayCoord);
 
@@ -267,7 +267,11 @@ class Canvas {
 		context.closePath();
 		context.fill();
 	};
-}
+
+	return {
+		render
+	};
+})();
 
 const parentElement = document.getElementById("root");
 
