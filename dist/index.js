@@ -50,7 +50,7 @@ const resizeStage = (width, height) => ({
 	height
 });
 
-const updatePropsWithAction = (state, action, ...props) => {
+const updatePropsToAction = (state, action, ...props) => {
 	let newProps = props.map(name => ({
 		[name]: action[name]
 	}));
@@ -81,10 +81,10 @@ const phrase = (state = initialState.phrase, action) => {
 const ray = (state = initialState.ray, action) => {
 	switch (action.type) {
 		case UPDATE_RAY_GAP:
-			return updatePropsWithAction(state, action, "gap");
+			return updatePropsToAction(state, action, "gap");
 
 		case RESIZE_RAY:
-			return updatePropsWithAction(state, action, "width");
+			return updatePropsToAction(state, action, "width");
 
 		default:
 			return state;
@@ -94,7 +94,7 @@ const ray = (state = initialState.ray, action) => {
 const canvas = (state = initialState.canvas, action) => {
 	switch (action.type) {
 		case RESIZE_STAGE:
-			return updatePropsWithAction(state, action, "width", "height");
+			return updatePropsToAction(state, action, "width", "height");
 
 		default:
 			return state;
@@ -113,20 +113,6 @@ const store = Redux.createStore(app, initialState);
 const toFlatten = (prevArr, nextArr) => prevArr.concat(nextArr);
 
 const toSum = (prevNum, nextNum) => prevNum + nextNum;
-
-function deepCopy(destination) {
-	let source = {};
-
-	for (var property in source) {
-		if (typeof source[property] === "object" && source[property] !== null && destination[property]) { 
-			deepCopy(destination[property], source[property]);
-		} else {
-			destination[property] = source[property];
-		}
-	}
-
-	return destination;
-};
 
 const calculateDistanceBetweenCoords = (coordA, coordB) => {
 	return Math.sqrt(coordA
@@ -228,7 +214,13 @@ const render = parentElement => {
 			context.fill();
 		});
 
-		lastState = deepCopy(state);
+		lastState = {
+			...state,
+			canvas: { ...state.canvas },
+			lightSource: { ...state.lightSource },
+			phrase: { ...state.phrase },
+			ray: { ...state.ray }
+		};
 	};
 };
 
