@@ -1,3 +1,5 @@
+// Phrase data
+
 const gotLight = [
 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0],
 	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0],
@@ -16,6 +18,8 @@ const gotLight = [
 	[0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 	[0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 ];
+
+// Redux initial state
 
 const initialState = {
 	animation: "automatic",
@@ -40,6 +44,8 @@ const initialState = {
 	}
 };
 
+// Redux action names
+
 const CHANGE_ANIMATION_TYPE = "CHANGE_ANIMATION_TYPE";
 const RESIZE_CANVAS = "RESIZE_CANVAS";
 const UPDATE_LIGHT_COORD = "UPDATE_LIGHT_COORD";
@@ -48,6 +54,8 @@ const UPDATE_PHRASE_GAP = "UPDATE_PHRASE_GAP";
 const UPDATE_PHRASE_SOURCE = "UPDATE_PHRASE_SOURCE";
 const UPDATE_RAY_APERTURE = "UPDATE_RAY_APERTURE";
 const UPDATE_RAY_REACH = "UPDATE_RAY_REACH";
+
+// Redux action creators
 
 const changeAnimationType = name => ({
 	type: CHANGE_ANIMATION_TYPE,
@@ -89,6 +97,8 @@ const updateRayReach = reach => ({
 	type: UPDATE_RAY_REACH,
 	reach
 });
+
+// Redux reducers and store
 
 const updatePropsToAction = (state, action, ...props) => {
 	let newProps = props.map(name => ({
@@ -166,6 +176,8 @@ const app = Redux.combineReducers({
 
 const store = Redux.createStore(app, initialState);
 
+// Helpers
+
 const degToRad = angle => angle * (Math.PI / 180);
 
 const radToDeg = angle => angle * (180 / Math.PI);
@@ -202,6 +214,8 @@ const translateAndRotateCoord = (coord, distance, rotation) => {
 	];
 };
 
+// Ray
+
 const Ray = (function() {
 	const calculateRadius = (lightReach, lightCoord, rayReach, rayCoord) => {
 		let distanceToLightSource = calculateDistanceBetweenCoords(lightCoord, rayCoord),
@@ -217,6 +231,8 @@ const Ray = (function() {
 		calculateRotation
 	};
 })();
+
+// Phrase
 
 const Phrase = (function() {
 	const calculateVisibleCoords = (canvas, source, gap) => {
@@ -262,6 +278,8 @@ const Phrase = (function() {
 		calculateHeight
 	};
 })();
+
+// Light
 
 const Light = (function() {
 	let animationFrame,
@@ -316,6 +334,7 @@ const Light = (function() {
 	};
 })();
 
+// Canvas
 
 const Canvas = (function() {
 	const render = (parentElement) => {
@@ -382,6 +401,8 @@ const Canvas = (function() {
 	};
 })();
 
+// UserInterface
+
 const UserInterface = (function() {
 	const update = (bindings) => {
 		bindings.forEach(binding =>
@@ -410,6 +431,8 @@ const UserInterface = (function() {
 		update
 	};
 })();
+
+// App
 
 const parentElement = document.getElementById("root"),
 	lightElement = document.getElementById("light"),
