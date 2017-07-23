@@ -114,20 +114,18 @@ const toFlatten = (prevArr, nextArr) => prevArr.concat(nextArr);
 
 const toSum = (prevNum, nextNum) => prevNum + nextNum;
 
-const deepCopy = (arg) => {
-	if (arg == null || typeof arg !== "object") {
-		return arg;
-	};
+function deepCopy(destination) {
+	let source = {};
 
-	let copy = {};
-
-	for (let attr in arg) {
-		if (arg.hasOwnProperty(attr)) {
-			copy[attr] = arg[attr];
-		};
+	for (var property in source) {
+		if (typeof source[property] === "object" && source[property] !== null && destination[property]) { 
+			deepCopy(destination[property], source[property]);
+		} else {
+			destination[property] = source[property];
+		}
 	}
 
-	return copy;
+	return destination;
 };
 
 const calculateDistanceBetweenCoords = (coordA, coordB) => {
