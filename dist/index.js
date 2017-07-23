@@ -159,15 +159,17 @@ const translateAndRotateCoord = (coord, distance, rotation) => {
 	];
 };
 
-const calculateRayDistance = (lightReach, lightCoord, rayCoord, rayMaxDistance) => {
-	let distanceToLightSource = calculateDistanceBetweenCoords(lightCoord, rayCoord),
+class Ray {
+	static calculateDistance(lightReach, lightCoord, rayCoord, rayMaxDistance) {
+		let distanceToLightSource = calculateDistanceBetweenCoords(lightCoord, rayCoord),
 		scale = 1 - (distanceToLightSource / (lightReach * rayMaxDistance));
+		return rayMaxDistance * Math.max(Math.min(scale, 1), 0);
+	}
 
-	return rayMaxDistance * Math.max(Math.min(scale, 1), 0);
-};
-
-const calculateRayRotation = (lightCoord, rayCoord) =>
-	calculateAngleBetweenLineAndXAxis(lightCoord, rayCoord);
+	static calculateRotation(lightCoord, rayCoord) {
+		return calculateAngleBetweenLineAndXAxis(lightCoord, rayCoord);
+	}
+}
 
 const calculatePhraseWidth = (source, gap) => Math.round(1 + gap * source[0].length);
 
@@ -230,8 +232,8 @@ const cleanUpCanvas = (context, width, height) => {
 };
 
 const drawRay = (context, lightReach, lightCoord, rayCoord, rayMaxDistance, rayAperture) => {
-	let distance = calculateRayDistance(lightReach, lightCoord, rayCoord, rayMaxDistance),
-		rotationInRadians = calculateRayRotation(lightCoord, rayCoord);
+	let distance = Ray.calculateDistance(lightReach, lightCoord, rayCoord, rayMaxDistance),
+		rotationInRadians = Ray.calculateRotation(lightCoord, rayCoord);
 
 	let apertureInRadians = rayAperture * Math.PI / 180,
 		angle1 = rotationInRadians - apertureInRadians / 2,
