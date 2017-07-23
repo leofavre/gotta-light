@@ -22,27 +22,36 @@ const initialState = {
 		width: window.innerWidth,
 		height: window.innerHeight
 	},
-	lightSource: [
-		Math.round(window.innerWidth / 3),
-		Math.round(window.innerHeight / 3)
-	],
+	lightSource: {
+		position: [
+			Math.round(window.innerWidth / 3),
+			Math.round(window.innerHeight / 3)
+		],
+		reach: 500
+	},
 	phrase: gotLight,
 	ray: {
-		gap: 10,
-		maxDistance: 100,
-		aperture: 8
+		gap: 9,
+		maxDistance: 80,
+		aperture: 12
 	}
 };
 
-const UPDATE_LIGHT_SOURCE = "UPDATE_LIGHT_SOURCE";
+const UPDATE_LIGHT_SOURCE_POSITION = "UPDATE_LIGHT_SOURCE_POSITION";
+const UPDATE_LIGHT_SOURCE_REACH = "UPDATE_LIGHT_SOURCE_REACH";
 const UPDATE_PHRASE = "UPDATE_PHRASE";
 const UPDATE_RAY_GAP = "UPDATE_RAY_GAP";
 const RESIZE_RAY = "RESIZE_RAY";
 const RESIZE_STAGE = "RESIZE_STAGE";
 
-const updateLightSource = (x, y) => ({
-	type: UPDATE_LIGHT_SOURCE,
-	coords: [x, y]
+const updateLightSourcePosition = (x, y) => ({
+	type: UPDATE_LIGHT_SOURCE_POSITION,
+	position: [x, y]
+});
+
+const updateLightSourceReach = reach => ({
+	type: UPDATE_LIGHT_SOURCE_REACH,
+	reach
 });
 
 const resizeStage = (width, height) => ({
@@ -61,8 +70,8 @@ const updatePropsToAction = (state, action, ...props) => {
 
 const lightSource = (state = initialState.lightSource, action) => {
 	switch (action.type) {
-		case UPDATE_LIGHT_SOURCE:
-			return action.coords;
+		case UPDATE_LIGHT_SOURCE_POSITION:
+			return updatePropsToAction(state, action, "position");
 
 		default:
 			return state;
@@ -136,15 +145,15 @@ const translateAndRotateCoord = (coord, distance, rotation) => {
 	];
 };
 
-const calculateRayDistance = (lightSource, coord, width) => {
-	let distanceToLightSource = calculateDistanceBetweenCoords(lightSource, coord),
+const calculateRayDistance = (lightSourceCoord, coord, width) => {
+	let distanceToLightSource = calculateDistanceBetweenCoords(lightSourceCoord, coord),
 		scale = 1 - (distanceToLightSource / 500); /* 500 may be parameterized */
 
 	return width * Math.max(Math.min(scale, 1), 0);
 };
 
-const calculateRayRotation = (lightSource, coord) =>
-	calculateAngleBetweenLineAndXAxis(lightSource, coord);
+const calculateRayRotation = (lightSourceCoord, coord) =>
+	calculateAngleBetweenLineAndXAxis(lightSourceCoord, coord);
 
 const calculatePhraseWidth = (phrase, gap) => Math.round(1 + gap * phrase[0].length);
 
@@ -192,7 +201,7 @@ const render = parentElement => {
 		cleanUpCanvas(context, canvas.width, canvas.height);
 
 		visibleCoords.forEach(coord =>
-			drawRay(context, lightSource, coord, ray.maxDistance, ray.aperture));
+			drawRay(context, lightSource.position, coord, ray.maxDistance, ray.aperture));
 	};
 };
 
@@ -205,9 +214,9 @@ const cleanUpCanvas = (context, width, height) => {
 	context.clearRect(0, 0, width, height);
 };
 
-const drawRay = (context, lightSource, coord, rayMaxDistance, rayAperture) => {
-	let distance = calculateRayDistance(lightSource, coord, rayMaxDistance),
-		rotationInRadians = calculateRayRotation(lightSource, coord);
+const drawRay = (context, lightSourceCoord, coord, rayMaxDistance, rayAperture) => {
+	let distance = calculateRayDistance(lightSourceCoord, coord, rayMaxDistance),
+		rotationInRadians = calculateRayRotation(lightSourceCoord, coord);
 
 	let apertureInRadians = rayAperture * Math.PI / 180,
 		angle1 = rotationInRadians - apertureInRadians / 2,
@@ -217,7 +226,7 @@ const drawRay = (context, lightSource, coord, rayMaxDistance, rayAperture) => {
 		[x2, y2] = translateAndRotateCoord(coord, distance, angle1);
 
 	let grd = context.createRadialGradient(x1, y1, 0, x1, y1, distance);
-	grd.addColorStop(0, "rgba(255, 255, 255, 0.4)");
+	grd.addColorStop(0, "rgba(255, 255, 255, 0.5)");
 	grd.addColorStop(1, "rgba(255, 255, 255, 0)");
 
 	context.fillStyle = grd;
@@ -235,7 +244,7 @@ window.addEventListener("resize", evt =>
 	store.dispatch(resizeStage(window.innerWidth, window.innerHeight)));
 
 parentElement.addEventListener("mousemove", evt =>
-	store.dispatch(updateLightSource(evt.clientX, evt.clientY)));
+	store.dispatch(updateLightSourcePosition(evt.clientX, evt.clientY)));
 
 store.subscribe(render(parentElement));
 store.dispatch(resizeStage(window.innerWidth, window.innerHeight));
