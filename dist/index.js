@@ -29,7 +29,8 @@ const initialState = {
 	phrase: gotLight,
 	ray: {
 		gap: 10,
-		width: 100
+		maxDistance: 100,
+		aperture: 8
 	}
 };
 
@@ -84,7 +85,7 @@ const ray = (state = initialState.ray, action) => {
 			return updatePropsToAction(state, action, "gap");
 
 		case RESIZE_RAY:
-			return updatePropsToAction(state, action, "width");
+			return updatePropsToAction(state, action, "maxDistance", "aperture");
 
 		default:
 			return state;
@@ -191,7 +192,7 @@ const render = parentElement => {
 		cleanUpCanvas(context, canvas.width, canvas.height);
 
 		visibleCoords.forEach(coord =>
-			drawRay(context, lightSource, coord, ray.width));
+			drawRay(context, lightSource, coord, ray.maxDistance, ray.aperture));
 	};
 };
 
@@ -204,23 +205,26 @@ const cleanUpCanvas = (context, width, height) => {
 	context.clearRect(0, 0, width, height);
 };
 
-const drawRay = (context, lightSource, coord, rayWidth) => {
-	let distance = calculateRayDistance(lightSource, coord, rayWidth),
-		rotation = calculateRayRotation(lightSource, coord);
+const drawRay = (context, lightSource, coord, rayMaxDistance, rayAperture) => {
+	let distance = calculateRayDistance(lightSource, coord, rayMaxDistance),
+		rotationInRadians = calculateRayRotation(lightSource, coord);
+
+	let apertureInRadians = rayAperture * Math.PI / 180,
+		angle1 = rotationInRadians - apertureInRadians / 2,
+		angle2 = rotationInRadians + apertureInRadians / 2;
 
 	let [x1, y1] = coord,
-		[x2, y2] = translateAndRotateCoord(coord, distance, rotation - 0.1), /* 0.1 may be parameterized */
-		[x3, y3] = translateAndRotateCoord(coord, distance, rotation + 0.1);
+		[x2, y2] = translateAndRotateCoord(coord, distance, angle1);
 
 	let grd = context.createRadialGradient(x1, y1, 0, x1, y1, distance);
-	grd.addColorStop(0, "rgba(255, 255, 255, 0.5)");
+	grd.addColorStop(0, "rgba(255, 255, 255, 0.4)");
 	grd.addColorStop(1, "rgba(255, 255, 255, 0)");
 
 	context.fillStyle = grd;
 	context.beginPath();
 	context.moveTo(x1, y1);
 	context.lineTo(x2, y2);
-	context.arc(x1, y1, distance, rotation - 0.1, rotation + 0.1);
+	context.arc(x1, y1, distance, angle1, angle2);
 	context.closePath();
 	context.fill();
 };
