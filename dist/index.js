@@ -70,6 +70,26 @@ const updatePropsToAction = (state, action, ...props) => {
 	return Object.assign({}, state, ...newProps);
 };
 
+const animation = (state = initialState.animation, action) => {
+	switch (action.type) {
+		case CHANGE_ANIMATION_TYPE:
+			return action.type;
+
+		default:
+			return state;
+	}
+};
+
+const canvas = (state = initialState.canvas, action) => {
+	switch (action.type) {
+		case RESIZE_CANVAS:
+			return updatePropsToAction(state, action, "width", "height");
+
+		default:
+			return state;
+	}
+};
+
 const lightSource = (state = initialState.lightSource, action) => {
 	switch (action.type) {
 		case UPDATE_LIGHT_SOURCE_COORD:
@@ -97,16 +117,6 @@ const ray = (state = initialState.ray, action) => {
 
 		case RESIZE_RAY:
 			return updatePropsToAction(state, action, "maxDistance", "aperture");
-
-		default:
-			return state;
-	}
-};
-
-const canvas = (state = initialState.canvas, action) => {
-	switch (action.type) {
-		case RESIZE_CANVAS:
-			return updatePropsToAction(state, action, "width", "height");
 
 		default:
 			return state;
@@ -171,7 +181,8 @@ const calculateTopLeftRayCoord = (canvas, phrase, gap) => {
 	];
 };
 
-const calculateRayCoord = (xStart, yStart, xIndex, yIndex, gap) => [Math.round(xIndex * gap + xStart), Math.round(yIndex * gap + yStart)];
+const calculateRayCoord = (xStart, yStart, xIndex, yIndex, gap) =>
+	[Math.round(xIndex * gap + xStart), Math.round(yIndex * gap + yStart)];
 
 const calculateVisibleRaysCoordsInLine = (line, lineIndex, xStart, yStart, gap) => {
 	return line
@@ -199,7 +210,7 @@ const render = parentElement => {
 			{ lightSource, phrase, ray, canvas } = state,
 			visibleCoords = calculateVisibleRayCoords(canvas, phrase, ray.gap);
 
-		updateCanvasSize(element, canvas.width, canvas.height);
+		updateCanvasDimensions(element, canvas.width, canvas.height);
 		cleanUpCanvas(context, canvas.width, canvas.height);
 
 		visibleCoords.forEach(rayCoord =>
@@ -207,7 +218,7 @@ const render = parentElement => {
 	};
 };
 
-const updateCanvasSize = (element, width, height) => {
+const updateCanvasDimensions = (element, width, height) => {
 	element.setAttribute("width", width);
 	element.setAttribute("height", height);
 };
