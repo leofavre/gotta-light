@@ -228,19 +228,19 @@ const Phrase = (function() {
 			.reduce(toFlatten);
 	};
 
+	const calculateWidth = (source, gap) => Math.round(1 + gap * source[0].length);
+
+	const calculateHeight = (source, gap) => Math.round(1 + gap * source.length);
+
 	const _calculateInitialCoord = (canvas, source, gap) => {
-		let phraseWidth = _calculateWidth(source, gap),
-			phraseHeight = _calculateHeight(source, gap);
+		let phraseWidth = calculateWidth(source, gap),
+			phraseHeight = calculateHeight(source, gap);
 
 		return [
 			Math.round((canvas.width - phraseWidth) / 2),
 			Math.round((canvas.height - phraseHeight) / 2)
 		];
 	};
-
-	const _calculateWidth = (source, gap) => Math.round(1 + gap * source[0].length);
-
-	const _calculateHeight = (source, gap) => Math.round(1 + gap * source.length);
 
 	const _calculateVisibleCoordsInLine = (line, lineIndex, xStart, yStart, gap) => {
 		return line
@@ -257,7 +257,9 @@ const Phrase = (function() {
 	};
 
 	return {
-		calculateVisibleCoords
+		calculateVisibleCoords,
+		calculateWidth,
+		calculateHeight
 	};
 })();
 
@@ -265,30 +267,40 @@ const Light = (function() {
 	let animationFrame,
 		increment = 0;
 
-	const animate = () => {
+	const animate = (element) => {
 		animationFrame = window.requestAnimationFrame(() => {
-			store.dispatch(
-				updateLightCoord(
-					window.innerWidth * _getPendularEasing(increment),
-					window.innerHeight * _getPendularEasing(increment)
-				));
+			let state = store.getState(),
+				{ source, gap } = state.phrase,
+				{ canvas } = state;
 
-			increment = increment + 0.5;
-			animate();
+			let phraseWidth = Phrase.calculateWidth(source, gap),
+				phraseHeight = Phrase.calculateHeight(source, gap),
+				canvasWidth = canvas.width,
+				canvasHeight = canvas.height;
+
+			let x = ((canvasWidth - phraseWidth) / 4) + (((phraseWidth + (canvasWidth - phraseWidth) / 2)) * _getPendularEasing(increment)),
+				y = ((canvasHeight - phraseHeight) / 4) + (((phraseHeight + (canvasHeight - phraseHeight) / 2)) * _getPendularEasing(increment + 110));
+
+			element.style.top = `${y}px`;
+			element.style.left = `${x}px`;
+
+			store.dispatch(updateLightCoord(x, y));
+
+			increment = increment + 1;
+			animate(element);
 		});
 	};
 
-	const stop = () =>{
+	const stop = () => {
 		window.cancelAnimationFrame(animationFrame);
-		increment = 0;
 	};
 
 	const _getPendularEasing = num => {
 		if (num % 90 === 0 && num % 180 !== 0) {
-			return 0;
+			return 0.5 + 0;
 		}
 
-		return Math.abs(Math.cos(degToRad(num % 360)));
+		return 0.5 + (Math.cos(degToRad(num % 360)) / 2);
 	};
 
 	return {
@@ -297,7 +309,6 @@ const Light = (function() {
 	};
 })();
 
-Light.animate();
 
 const Canvas = (function() {
 	const render = (parentElement) => {
@@ -394,6 +405,7 @@ const UserInterface = (function() {
 })();
 
 const parentElement = document.getElementById("root"),
+	lightElement = document.getElementById("light"),
 	phraseGapInput = document.getElementById("phrase-gap-input"),
 	lightReachInput = document.getElementById("light-reach-input"),
 	rayApertureInput = document.getElementById("ray-aperture-input"),
@@ -429,3 +441,5 @@ store.subscribe(Canvas.render(parentElement));
 store.subscribe(UserInterface.update(userInterfaceBindings));
 
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
+
+Light.animate(lightElement);
