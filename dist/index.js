@@ -182,20 +182,13 @@ const render = parentElement => {
 	const element = parentElement.children[0];
 	const context = element.getContext('2d');
 
-	let lastState = {};
-
 	return () => {
 		let state = store.getState(),
 			{ lightSource, phrase, ray, canvas } = state,
 			visibleCoords = calculatePhraseVisibleCoords(canvas, phrase, ray.gap);
 
-		if (lastState.canvas == null || state.canvas.width !== lastState.canvas.width) {
-			element.setAttribute("width", state.canvas.width);
-		}
-
-		if (lastState.canvas == null || state.canvas.height !== lastState.canvas.height) {
-			element.setAttribute("height", state.canvas.height);
-		}
+		element.setAttribute("width", state.canvas.width);
+		element.setAttribute("height", state.canvas.height);
 
 		context.clearRect(0, 0, state.canvas.width, state.canvas.height);
 
@@ -213,14 +206,6 @@ const render = parentElement => {
 			context.closePath();
 			context.fill();
 		});
-
-		lastState = {
-			...state,
-			canvas: { ...state.canvas },
-			lightSource: { ...state.lightSource },
-			phrase: { ...state.phrase },
-			ray: { ...state.ray }
-		};
 	};
 };
 
