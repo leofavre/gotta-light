@@ -1,6 +1,6 @@
 {
   "name": "type-lux-canvas-redux",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Exercising HTML Canvas and Redux while converting an old ActionScript project.",
   "main": "./dist/index.js",
   "scripts": {

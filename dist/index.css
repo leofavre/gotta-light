@@ -1,10 +1,14 @@
 html,
 body {
 	margin: 0;
-	background: #000;
+	background: #222;
 	overflow: hidden;
 	font-family: sans-serif;
 	font-size: 13px;
+}
+
+canvas {
+	background: transparent;
 }
 
 #controls {

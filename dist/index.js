@@ -170,6 +170,13 @@ const toFlatten = (prevArr, nextArr) => prevArr.concat(nextArr);
 
 const toSum = (prevNum, nextNum) => prevNum + nextNum;
 
+const parsePath = path => Array.isArray(path) ? path : `${path}`.split(".");
+
+const simpleAt = (obj, path) =>
+	parsePath(path).reduce((obj, key) => {
+		return (obj != null && obj.hasOwnProperty(key)) ? obj[key] : undefined;
+	}, obj);
+
 const calculateDistanceBetweenCoords = (coordA, coordB) => {
 	return Math.sqrt(coordA
 		.map((coord, index) => Math.pow(coord - coordB[index], 2))
@@ -310,21 +317,58 @@ const Canvas = (function() {
 	};
 })();
 
+const UserInterface = (function() {
+	const update = (bindings) => {
+		bindings.forEach(binding =>
+			_controlViaInput(binding.input, binding.action));
+
+		return () => {
+			let state = store.getState();
+
+			bindings.forEach(binding =>
+				_updateInput(binding.input, binding.input.value, simpleAt(state, binding.stateProp)));
+		};
+	};
+
+	const _updateInput = (inputEl, inputValue, stateValue) => {
+		if (stateValue !== inputValue) {
+			inputEl.value = stateValue;
+		}
+	};
+
+	const _controlViaInput = (inputEl, callback) => {
+		inputEl.addEventListener("input", evt =>
+			store.dispatch(callback(evt.target.value)));
+	};
+
+	return {
+		update
+	};
+})();
+
 const parentElement = document.getElementById("root"),
 	phraseGapInput = document.getElementById("phrase-gap-input"),
 	lightReachInput = document.getElementById("light-reach-input"),
 	rayApertureInput = document.getElementById("ray-aperture-input"),
 	rayReachInput = document.getElementById("ray-reach-input");
 
-const controlViaInput = (inputEl, callback) => {
-	inputEl.addEventListener("input", evt =>
-		store.dispatch(callback(evt.target.value)));
-};
-
-controlViaInput(phraseGapInput, updatePhraseGap);
-controlViaInput(lightReachInput, updateLightReach);
-controlViaInput(rayApertureInput, updateRayAperture);
-controlViaInput(rayReachInput, updateRayReach);
+const UIBindings = [{
+	input: phraseGapInput,
+	action: updatePhraseGap,
+	stateProp: "phrase.gap"
+}, {
+	input: lightReachInput,
+	action: updateLightReach,
+	stateProp: "light.reach"
+}, {
+	input: rayApertureInput,
+	action: updateRayAperture,
+	stateProp: "ray.aperture"
+}, {
+	input: rayReachInput,
+	action: updateRayReach,
+	stateProp: "ray.reach"
+}];
 
 window.addEventListener("resize", evt =>
 	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
@@ -333,4 +377,6 @@ parentElement.addEventListener("mousemove", evt =>
 	store.dispatch(updateLightCoord(evt.clientX, evt.clientY)));
 
 store.subscribe(Canvas.render(parentElement));
+store.subscribe(UserInterface.update(UIBindings));
+
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
