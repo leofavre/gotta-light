@@ -18,6 +18,7 @@ const gotLight = [
 ];
 
 const initialState = {
+	animation: "pointer",
 	canvas: {
 		width: window.innerWidth,
 		height: window.innerHeight
@@ -37,13 +38,13 @@ const initialState = {
 	}
 };
 
-const UPDATE_ANIMATION_TYPE = "CHANGE_ANIMATION_TYPE";
+const CHANGE_ANIMATION_TYPE = "CHANGE_ANIMATION_TYPE";
+const RESIZE_CANVAS = "RESIZE_CANVAS";
 const UPDATE_LIGHT_SOURCE_COORD = "UPDATE_LIGHT_SOURCE_COORD";
 const UPDATE_LIGHT_SOURCE_REACH = "UPDATE_LIGHT_SOURCE_REACH";
 const UPDATE_PHRASE = "UPDATE_PHRASE";
 const UPDATE_RAY_GAP = "UPDATE_RAY_GAP";
 const RESIZE_RAY = "RESIZE_RAY";
-const RESIZE_CANVAS = "RESIZE_CANVAS";
 
 const updateLightSourceCoord = (x, y) => ({
 	type: UPDATE_LIGHT_SOURCE_COORD,
