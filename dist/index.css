@@ -26,10 +26,10 @@ canvas {
 label {
 	display: flex;
 	flex-flow: row wrap;
-	justify-content: space-between;
 	margin: 0.75em 0;
 }
 
 label span {
-	margin-right: 2em;
+	margin-left: 1em;
+	order: 5;
 }

@@ -199,7 +199,7 @@ const translateAndRotateCoord = (coord, distance, rotation) => {
 };
 
 const Ray = (function() {
-	const calculateDistance = (lightReach, lightCoord, rayReach, rayCoord) => {
+	const calculateRadius = (lightReach, lightCoord, rayReach, rayCoord) => {
 		let distanceToLightSource = calculateDistanceBetweenCoords(lightCoord, rayCoord),
 		scale = 1 - (distanceToLightSource / (lightReach * rayReach));
 		return rayReach * Math.max(Math.min(scale, 1), 0);
@@ -209,7 +209,7 @@ const Ray = (function() {
 		calculateAngleBetweenLineAndXAxis(lightCoord, rayCoord);
 
 	return {
-		calculateDistance,
+		calculateRadius,
 		calculateRotation
 	};
 })();
@@ -257,6 +257,12 @@ const Phrase = (function() {
 	};
 })();
 
+const Light = (function() {
+	const animateSource = () => {
+
+	};
+})();
+
 const Canvas = (function() {
 	const render = (parentElement) => {
 		parentElement.innerHTML = `<canvas></canvas>`;
@@ -268,28 +274,33 @@ const Canvas = (function() {
 				{ light, phrase, ray, canvas } = state,
 				visibleCoords = Phrase.calculateVisibleCoords(canvas, phrase.source, phrase.gap);
 
-			_updateCanvasDimensions(element, canvas.width, canvas.height);
-			_cleanUpCanvas(context, canvas.width, canvas.height);
-			_drawCanvas(visibleCoords, context, light, ray);
+			_updateDimensions(element, canvas.width, canvas.height);
+			_cleanUp(context, canvas.width, canvas.height);
+			_draw(visibleCoords, context, light, ray);
 		};
 	};
 
-	const _updateCanvasDimensions = (element, width, height) => {
+	const _updateDimensions = (element, width, height) => {
 		element.setAttribute("width", width);
 		element.setAttribute("height", height);
 	};
 
-	const _cleanUpCanvas = (context, width, height) => {
+	const _cleanUp = (context, width, height) => {
 		context.clearRect(0, 0, width, height);
 	};
 
-	const _drawCanvas = (visibleCoords, context, light, ray) => {
+	const _draw = (visibleCoords, context, light, ray) => {
+		let lightReach = light.reach,
+			lightCoord = light.coord,
+			rayReach = ray.reach,
+			rayAperture = ray.aperture;
+
 		visibleCoords.forEach(rayCoord =>
-			_drawRay(context, light.reach, light.coord, ray.reach, rayCoord, ray.aperture));
+			_drawRay(context, lightReach, lightCoord, rayReach, rayCoord, rayAperture));
 	};
 
 	const _drawRay = (context, lightReach, lightCoord, rayReach, rayCoord, rayAperture) => {
-		let distance = Ray.calculateDistance(lightReach, lightCoord, rayReach, rayCoord),
+		let radius = Ray.calculateRadius(lightReach, lightCoord, rayReach, rayCoord),
 			rotationInRadians = Ray.calculateRotation(lightCoord, rayCoord);
 
 		let apertureInRadians = rayAperture * Math.PI / 180,
@@ -297,9 +308,9 @@ const Canvas = (function() {
 			angle2 = rotationInRadians + apertureInRadians / 2;
 
 		let [x1, y1] = rayCoord,
-			[x2, y2] = translateAndRotateCoord(rayCoord, distance, angle1);
+			[x2, y2] = translateAndRotateCoord(rayCoord, radius, angle1);
 
-		let gradient = context.createRadialGradient(x1, y1, 0, x1, y1, distance);
+		let gradient = context.createRadialGradient(x1, y1, 0, x1, y1, radius);
 		gradient.addColorStop(0, "rgba(255, 255, 255, 0.5)");
 		gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
@@ -307,7 +318,7 @@ const Canvas = (function() {
 		context.beginPath();
 		context.moveTo(x1, y1);
 		context.lineTo(x2, y2);
-		context.arc(x1, y1, distance, angle1, angle2);
+		context.arc(x1, y1, radius, angle1, angle2);
 		context.closePath();
 		context.fill();
 	};
@@ -326,12 +337,12 @@ const UserInterface = (function() {
 			let state = store.getState();
 
 			bindings.forEach(binding =>
-				_updateInput(binding.input, binding.input.value, simpleAt(state, binding.stateProp)));
+				_updateInput(binding.input, simpleAt(state, binding.stateProp)));
 		};
 	};
 
-	const _updateInput = (inputEl, inputValue, stateValue) => {
-		if (stateValue !== inputValue) {
+	const _updateInput = (inputEl, stateValue) => {
+		if (inputEl.value !== stateValue) {
 			inputEl.value = stateValue;
 		}
 	};
@@ -352,7 +363,7 @@ const parentElement = document.getElementById("root"),
 	rayApertureInput = document.getElementById("ray-aperture-input"),
 	rayReachInput = document.getElementById("ray-reach-input");
 
-const UIBindings = [{
+const userInterfaceBindings = [{
 	input: phraseGapInput,
 	action: updatePhraseGap,
 	stateProp: "phrase.gap"
@@ -377,6 +388,6 @@ parentElement.addEventListener("mousemove", evt =>
 	store.dispatch(updateLightCoord(evt.clientX, evt.clientY)));
 
 store.subscribe(Canvas.render(parentElement));
-store.subscribe(UserInterface.update(UIBindings));
+store.subscribe(UserInterface.update(userInterfaceBindings));
 
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
