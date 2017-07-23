@@ -172,13 +172,14 @@ class Ray {
 }
 
 class Phrase {
-	static _calculateWidth(source, gap) {
-		return Math.round(1 + gap * source[0].length);
-	}
+	static calculateVisibleCoords(canvas, source, gap) {
+		let [xStart, yStart] = this._calculateInitialCoord(canvas, source, gap);
 
-	static _calculateHeight(source, gap) {
-		return Math.round(1 + gap * source.length);
-	}
+		return source
+			.map((line, lineIndex) =>
+				this._calculateVisibleCoordsInLine(line, lineIndex, xStart, yStart, gap))
+			.reduce(toFlatten);
+	};
 
 	static _calculateInitialCoord(canvas, source, gap) {
 		let phraseWidth = this._calculateWidth(source, gap),
@@ -190,11 +191,12 @@ class Phrase {
 		];
 	};
 
-	static _calculateCoord(xStart, yStart, xIndex, yIndex, gap) {
-		return [
-			Math.round(xIndex * gap + xStart),
-			Math.round(yIndex * gap + yStart)
-		];
+	static _calculateWidth(source, gap) {
+		return Math.round(1 + gap * source[0].length);
+	}
+
+	static _calculateHeight(source, gap) {
+		return Math.round(1 + gap * source.length);
 	}
 
 	static _calculateVisibleCoordsInLine(line, lineIndex, xStart, yStart, gap) {
@@ -204,69 +206,69 @@ class Phrase {
 			.filter(rayCoord => rayCoord != null);
 	};
 
-	static calculateVisibleCoords(canvas, source, gap) {
-		let [xStart, yStart] = this._calculateInitialCoord(canvas, source, gap);
-
-		return source
-			.map((line, lineIndex) =>
-				this._calculateVisibleCoordsInLine(line, lineIndex, xStart, yStart, gap))
-			.reduce(toFlatten);
-	};
+	static _calculateCoord(xStart, yStart, xIndex, yIndex, gap) {
+		return [
+			Math.round(xIndex * gap + xStart),
+			Math.round(yIndex * gap + yStart)
+		];
+	}
 }
 
-const render = parentElement => {
-	parentElement.innerHTML = `<canvas></canvas>`;
-	const element = parentElement.children[0];
-	const context = element.getContext('2d');
+class Canvas {
+	static render(parentElement) {
+		parentElement.innerHTML = `<canvas></canvas>`;
+		const element = parentElement.children[0];
+		const context = element.getContext('2d');
 
-	return () => {
-		let state = store.getState(),
-			{ light, phrase, ray, canvas } = state,
-			visibleCoords = Phrase.calculateVisibleCoords(canvas, phrase.source, phrase.gap);
+		return () => {
+			let state = store.getState(),
+				{ light, phrase, ray, canvas } = state,
+				visibleCoords = Phrase.calculateVisibleCoords(canvas, phrase.source, phrase.gap);
 
-		updateCanvasDimensions(element, canvas.width, canvas.height);
-		cleanUpCanvas(context, canvas.width, canvas.height);
-		drawCanvas(visibleCoords, context, light, ray);
+			this._updateCanvasDimensions(element, canvas.width, canvas.height);
+			this._cleanUpCanvas(context, canvas.width, canvas.height);
+			this._drawCanvas(visibleCoords, context, light, ray);
+		};
 	};
-};
 
-const updateCanvasDimensions = (element, width, height) => {
-	element.setAttribute("width", width);
-	element.setAttribute("height", height);
-};
+	static _updateCanvasDimensions(element, width, height) {
+		element.setAttribute("width", width);
+		element.setAttribute("height", height);
+	};
 
-const cleanUpCanvas = (context, width, height) => {
-	context.clearRect(0, 0, width, height);
-};
+	static _cleanUpCanvas(context, width, height) {
+		context.clearRect(0, 0, width, height);
+	};
 
-const drawCanvas = (visibleCoords, context, light, ray) => {
-	visibleCoords.forEach(rayCoord =>
-		drawRay(context, light.reach, light.coord, ray.reach, rayCoord, ray.aperture));
-};
+	static _drawCanvas(visibleCoords, context, light, ray) {
+		visibleCoords.forEach(rayCoord =>
+			this._drawRay(context, light.reach, light.coord, ray.reach, rayCoord, ray.aperture));
+	};
 
-const drawRay = (context, lightReach, lightCoord, rayReach, rayCoord, rayAperture) => {
-	let distance = Ray.calculateDistance(lightReach, lightCoord, rayReach, rayCoord),
-		rotationInRadians = Ray.calculateRotation(lightCoord, rayCoord);
+	static _drawRay(context, lightReach, lightCoord, rayReach, rayCoord, rayAperture) {
+		let distance = Ray.calculateDistance(lightReach, lightCoord, rayReach, rayCoord),
+			rotationInRadians = Ray.calculateRotation(lightCoord, rayCoord);
 
-	let apertureInRadians = rayAperture * Math.PI / 180,
-		angle1 = rotationInRadians - apertureInRadians / 2,
-		angle2 = rotationInRadians + apertureInRadians / 2;
+		let apertureInRadians = rayAperture * Math.PI / 180,
+			angle1 = rotationInRadians - apertureInRadians / 2,
+			angle2 = rotationInRadians + apertureInRadians / 2;
 
-	let [x1, y1] = rayCoord,
-		[x2, y2] = translateAndRotateCoord(rayCoord, distance, angle1);
+		let [x1, y1] = rayCoord,
+			[x2, y2] = translateAndRotateCoord(rayCoord, distance, angle1);
 
-	let gradient = context.createRadialGradient(x1, y1, 0, x1, y1, distance);
-	gradient.addColorStop(0, "rgba(255, 255, 255, 0.5)");
-	gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+		let gradient = context.createRadialGradient(x1, y1, 0, x1, y1, distance);
+		gradient.addColorStop(0, "rgba(255, 255, 255, 0.5)");
+		gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
-	context.fillStyle = gradient;
-	context.beginPath();
-	context.moveTo(x1, y1);
-	context.lineTo(x2, y2);
-	context.arc(x1, y1, distance, angle1, angle2);
-	context.closePath();
-	context.fill();
-};
+		context.fillStyle = gradient;
+		context.beginPath();
+		context.moveTo(x1, y1);
+		context.lineTo(x2, y2);
+		context.arc(x1, y1, distance, angle1, angle2);
+		context.closePath();
+		context.fill();
+	};
+}
 
 const parentElement = document.getElementById("root");
 
@@ -276,5 +278,5 @@ window.addEventListener("resize", evt =>
 parentElement.addEventListener("mousemove", evt =>
 	store.dispatch(updateLightSourceCoord(evt.clientX, evt.clientY)));
 
-store.subscribe(render(parentElement));
+store.subscribe(Canvas.render(parentElement));
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
