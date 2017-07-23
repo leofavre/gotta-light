@@ -138,9 +138,7 @@ const translateAndRotateCoord = (coord, distance, rotation) => {
 
 const calculateRayDistance = (lightSource, coord, width) => {
 	let distanceToLightSource = calculateDistanceBetweenCoords(lightSource, coord),
-		scale = 1 - (distanceToLightSource / 500);
-
-	// TO DO: change this '500' value to something parameterized?
+		scale = 1 - (distanceToLightSource / 500); /* 500 may be parameterized */
 
 	return width * Math.max(Math.min(scale, 1), 0);
 };
@@ -207,8 +205,8 @@ const render = parentElement => {
 				rotation = calculateRayRotation(lightSource, coord);
 
 			let [x1, y1] = coord,
-				[x2, y2] = translateAndRotateCoord(coord, distance, rotation - 0.05),
-				[x3, y3] = translateAndRotateCoord(coord, distance, rotation + 0.05);
+				[x2, y2] = translateAndRotateCoord(coord, distance, rotation - 0.05), /* 0.05 may be parameterized */
+				[x3, y3] = translateAndRotateCoord(coord, distance, rotation + 0.05); /* 0.05 may be parameterized */
 
 			context.fillStyle = '#f1f1f1';
 			context.beginPath();
