@@ -28,9 +28,9 @@ const initialState = {
 	],
 	phrase: gotLight,
 	ray: {
-		gap: 8,
+		gap: 10,
 		width: 50,
-		height: 4
+		aperture: 5
 	}
 };
 
@@ -124,24 +124,33 @@ const calculateDistanceBetweenCoords = (coordA, coordB) => {
 		.reduce(toSum));
 };
 
-const calculateRayScaleInPercent = (lightSource, coord) => {
+const calculateAngleBetweenLineAndXAxis = (coordA, coordB) => {
+	let [x, y] = coordA,
+		[xb, yb] = coordB;
+
+	return Math.atan2((yb - y), (xb - x));
+};
+
+const translateAndRotateCoord = (coord, distance, rotation) => {
+	let [x, y] = coord;
+
+	return [
+		x + distance * Math.cos(rotation),
+		y + distance * Math.sin(rotation)
+	];
+};
+
+const calculateRayDistance = (lightSource, coord, width) => {
 	let distanceToLightSource = calculateDistanceBetweenCoords(lightSource, coord),
 		scale = 1 - (distanceToLightSource / 500);
 
 	// TO DO: change this '500' value to something parameterized?
 
-	return Math.max(Math.min(scale, 1), 0);
+	return width * Math.max(Math.min(scale, 1), 0);
 };
 
-const calculateRayRotationInDegrees = (lightSource, coord) => {
-	let relX = (lightSource[0] - coord[0]) * -1,
-		relY = (lightSource[1] - coord[1]) * -1,
-		dist = calculateDistanceBetweenCoords(lightSource, coord);
-
-	let k = (relY < 0) ? -1 : 1;
-
-	return k * Math.acos(relX / dist) * 180 / Math.PI;
-};
+const calculateRayRotation = (lightSource, coord) =>
+	calculateAngleBetweenLineAndXAxis(lightSource, coord);
 
 const calculatePhraseWidthInPixels = (phrase, gap) => Math.round(1 + gap * phrase[0].length);
 
@@ -198,14 +207,17 @@ const render = parentElement => {
 		context.clearRect(0, 0, state.canvas.width, state.canvas.height);
 
 		visibleCoords.forEach(coord => {
-			let [x, y] = coord,
-				scale = calculateRayScaleInPercent(lightSource, coord);
+			let distance = calculateRayDistance(lightSource, coord, state.ray.width),
+				rotation = calculateRayRotation(lightSource, coord);
+
+			let [x1, y1] = coord,
+				[x2, y2] = translateAndRotateCoord(coord, distance, rotation);
 
 			context.fillStyle = '#f1f1f1';
 			context.beginPath();
-			context.moveTo(x, y);
-			context.lineTo(x + (state.ray.width * scale), y - (state.ray.height / 2));
-			context.lineTo(x + (state.ray.width * scale), y + (state.ray.height / 2));
+			context.moveTo(x1, y1);
+			context.lineTo(x2, y2 + 2);
+			context.lineTo(x2, y2 - 2);
 			context.closePath();
 			context.fill();
 		});
@@ -220,13 +232,13 @@ const render = parentElement => {
 	};
 };
 
+const parentElement = document.getElementById("root");
+
 window.addEventListener("resize", evt =>
 	store.dispatch(resizeStage(window.innerWidth, window.innerHeight)));
 
-document.addEventListener("mousemove", evt =>
+parentElement.addEventListener("mousemove", evt =>
 	store.dispatch(updateLightSource(evt.clientX, evt.clientY)));
-
-const parentElement = document.getElementById("root");
 
 store.subscribe(render(parentElement));
 store.dispatch(resizeStage(window.innerWidth, window.innerHeight));
