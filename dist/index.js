@@ -18,7 +18,7 @@ const gotLight = [
 ];
 
 const initialState = {
-	animation: "pointer",
+	animation: "automatic",
 	canvas: {
 		height: window.innerHeight,
 		width: window.innerWidth
@@ -166,6 +166,10 @@ const app = Redux.combineReducers({
 
 const store = Redux.createStore(app, initialState);
 
+const degToRad = angle => angle * (Math.PI / 180);
+
+const radToDeg = angle => angle * (180 / Math.PI);
+
 const toFlatten = (prevArr, nextArr) => prevArr.concat(nextArr);
 
 const toSum = (prevNum, nextNum) => prevNum + nextNum;
@@ -258,10 +262,42 @@ const Phrase = (function() {
 })();
 
 const Light = (function() {
-	const animateSource = () => {
+	let animationFrame,
+		increment = 0;
 
+	const animate = () => {
+		animationFrame = window.requestAnimationFrame(() => {
+			store.dispatch(
+				updateLightCoord(
+					window.innerWidth * _getPendularEasing(increment),
+					window.innerHeight * _getPendularEasing(increment)
+				));
+
+			increment = increment + 0.5;
+			animate();
+		});
+	};
+
+	const stop = () =>{
+		window.cancelAnimationFrame(animationFrame);
+		increment = 0;
+	};
+
+	const _getPendularEasing = num => {
+		if (num % 90 === 0 && num % 180 !== 0) {
+			return 0;
+		}
+
+		return Math.abs(Math.cos(degToRad(num % 360)));
+	};
+
+	return {
+		animate,
+		stop
 	};
 })();
+
+Light.animate();
 
 const Canvas = (function() {
 	const render = (parentElement) => {
@@ -303,7 +339,7 @@ const Canvas = (function() {
 		let radius = Ray.calculateRadius(lightReach, lightCoord, rayReach, rayCoord),
 			rotationInRadians = Ray.calculateRotation(lightCoord, rayCoord);
 
-		let apertureInRadians = rayAperture * Math.PI / 180,
+		let apertureInRadians = degToRad(rayAperture),
 			angle1 = rotationInRadians - apertureInRadians / 2,
 			angle2 = rotationInRadians + apertureInRadians / 2;
 
@@ -384,8 +420,10 @@ const userInterfaceBindings = [{
 window.addEventListener("resize", evt =>
 	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
 
+/*
 parentElement.addEventListener("mousemove", evt =>
 	store.dispatch(updateLightCoord(evt.clientX, evt.clientY)));
+*/
 
 store.subscribe(Canvas.render(parentElement));
 store.subscribe(UserInterface.update(userInterfaceBindings));
