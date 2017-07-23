@@ -36,7 +36,7 @@ const initialState = {
 	},
 	ray: {
 		aperture: 12,
-		maxDistance: 80,
+		reach: 80,
 	}
 };
 
@@ -118,7 +118,7 @@ const phrase = (state = initialState.phrase, action) => {
 const ray = (state = initialState.ray, action) => {
 	switch (action.type) {
 		case RESIZE_RAY:
-			return updatePropsToAction(state, action, "aperture", "maxDistance");
+			return updatePropsToAction(state, action, "aperture", "reach");
 
 		default:
 			return state;
@@ -160,10 +160,10 @@ const translateAndRotateCoord = (coord, distance, rotation) => {
 };
 
 class Ray {
-	static calculateDistance(lightReach, lightCoord, rayCoord, rayMaxDistance) {
+	static calculateDistance(lightReach, lightCoord, rayReach, rayCoord) {
 		let distanceToLightSource = calculateDistanceBetweenCoords(lightCoord, rayCoord),
-		scale = 1 - (distanceToLightSource / (lightReach * rayMaxDistance));
-		return rayMaxDistance * Math.max(Math.min(scale, 1), 0);
+		scale = 1 - (distanceToLightSource / (lightReach * rayReach));
+		return rayReach * Math.max(Math.min(scale, 1), 0);
 	}
 
 	static calculateRotation(lightCoord, rayCoord) {
@@ -228,7 +228,7 @@ const render = parentElement => {
 		cleanUpCanvas(context, canvas.width, canvas.height);
 
 		visibleCoords.forEach(rayCoord =>
-			drawRay(context, light.reach, light.coord, rayCoord, ray.maxDistance, ray.aperture));
+			drawRay(context, light.reach, light.coord, ray.reach, rayCoord, ray.aperture));
 	};
 };
 
@@ -241,8 +241,8 @@ const cleanUpCanvas = (context, width, height) => {
 	context.clearRect(0, 0, width, height);
 };
 
-const drawRay = (context, lightReach, lightCoord, rayCoord, rayMaxDistance, rayAperture) => {
-	let distance = Ray.calculateDistance(lightReach, lightCoord, rayCoord, rayMaxDistance),
+const drawRay = (context, lightReach, lightCoord, rayReach, rayCoord, rayAperture) => {
+	let distance = Ray.calculateDistance(lightReach, lightCoord, rayReach, rayCoord),
 		rotationInRadians = Ray.calculateRotation(lightCoord, rayCoord);
 
 	let apertureInRadians = rayAperture * Math.PI / 180,
