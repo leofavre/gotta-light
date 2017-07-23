@@ -171,38 +171,48 @@ class Ray {
 	}
 }
 
-const calculatePhraseWidth = (source, gap) => Math.round(1 + gap * source[0].length);
+class Phrase {
+	static _calculateWidth(source, gap) {
+		return Math.round(1 + gap * source[0].length);
+	}
 
-const calculatePhraseHeight = (source, gap) => Math.round(1 + gap * source.length);
+	static _calculateHeight(source, gap) {
+		return Math.round(1 + gap * source.length);
+	}
 
-const calculateTopLeftCoord = (canvas, source, gap) => {
-	let phraseWidth = calculatePhraseWidth(source, gap),
-		phraseHeight = calculatePhraseHeight(source, gap);
+	static _calculateInitialCoord(canvas, source, gap) {
+		let phraseWidth = this._calculateWidth(source, gap),
+			phraseHeight = this._calculateHeight(source, gap);
 
-	return [
-		Math.round((canvas.width - phraseWidth) / 2),
-		Math.round((canvas.height - phraseHeight) / 2)
-	];
-};
+		return [
+			Math.round((canvas.width - phraseWidth) / 2),
+			Math.round((canvas.height - phraseHeight) / 2)
+		];
+	};
 
-const calculateCoord = (xStart, yStart, xIndex, yIndex, gap) =>
-	[Math.round(xIndex * gap + xStart), Math.round(yIndex * gap + yStart)];
+	static _calculateCoord(xStart, yStart, xIndex, yIndex, gap) {
+		return [
+			Math.round(xIndex * gap + xStart),
+			Math.round(yIndex * gap + yStart)
+		];
+	}
 
-const calculateVisibleCoordsInLine = (line, lineIndex, xStart, yStart, gap) => {
-	return line
-		.map((dot, dotIndex) =>
-			!!dot ? calculateCoord(xStart, yStart, dotIndex, lineIndex, gap) : null)
-		.filter(rayCoord => rayCoord != null);
-};
+	static _calculateVisibleCoordsInLine(line, lineIndex, xStart, yStart, gap) {
+		return line
+			.map((dot, dotIndex) =>
+				!!dot ? this._calculateCoord(xStart, yStart, dotIndex, lineIndex, gap) : null)
+			.filter(rayCoord => rayCoord != null);
+	};
 
-const calculateVisibleCoords = (canvas, source, gap) => {
-	let [xStart, yStart] = calculateTopLeftCoord(canvas, source, gap);
+	static calculateVisibleCoords(canvas, source, gap) {
+		let [xStart, yStart] = this._calculateInitialCoord(canvas, source, gap);
 
-	return source
-		.map((line, lineIndex) =>
-			calculateVisibleCoordsInLine(line, lineIndex, xStart, yStart, gap))
-		.reduce(toFlatten);
-};
+		return source
+			.map((line, lineIndex) =>
+				this._calculateVisibleCoordsInLine(line, lineIndex, xStart, yStart, gap))
+			.reduce(toFlatten);
+	};
+}
 
 const render = parentElement => {
 	parentElement.innerHTML = `<canvas></canvas>`;
@@ -212,7 +222,7 @@ const render = parentElement => {
 	return () => {
 		let state = store.getState(),
 			{ light, phrase, ray, canvas } = state,
-			visibleCoords = calculateVisibleCoords(canvas, phrase.source, phrase.gap);
+			visibleCoords = Phrase.calculateVisibleCoords(canvas, phrase.source, phrase.gap);
 
 		updateCanvasDimensions(element, canvas.width, canvas.height);
 		cleanUpCanvas(context, canvas.width, canvas.height);
