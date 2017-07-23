@@ -226,9 +226,7 @@ const render = parentElement => {
 
 		updateCanvasDimensions(element, canvas.width, canvas.height);
 		cleanUpCanvas(context, canvas.width, canvas.height);
-
-		visibleCoords.forEach(rayCoord =>
-			drawRay(context, light.reach, light.coord, ray.reach, rayCoord, ray.aperture));
+		drawCanvas(visibleCoords, context, light, ray);
 	};
 };
 
@@ -239,6 +237,11 @@ const updateCanvasDimensions = (element, width, height) => {
 
 const cleanUpCanvas = (context, width, height) => {
 	context.clearRect(0, 0, width, height);
+};
+
+const drawCanvas = (visibleCoords, context, light, ray) => {
+	visibleCoords.forEach(rayCoord =>
+		drawRay(context, light.reach, light.coord, ray.reach, rayCoord, ray.aperture));
 };
 
 const drawRay = (context, lightReach, lightCoord, rayReach, rayCoord, rayAperture) => {
@@ -252,11 +255,11 @@ const drawRay = (context, lightReach, lightCoord, rayReach, rayCoord, rayApertur
 	let [x1, y1] = rayCoord,
 		[x2, y2] = translateAndRotateCoord(rayCoord, distance, angle1);
 
-	let grd = context.createRadialGradient(x1, y1, 0, x1, y1, distance);
-	grd.addColorStop(0, "rgba(255, 255, 255, 0.5)");
-	grd.addColorStop(1, "rgba(255, 255, 255, 0)");
+	let gradient = context.createRadialGradient(x1, y1, 0, x1, y1, distance);
+	gradient.addColorStop(0, "rgba(255, 255, 255, 0.5)");
+	gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
-	context.fillStyle = grd;
+	context.fillStyle = gradient;
 	context.beginPath();
 	context.moveTo(x1, y1);
 	context.lineTo(x2, y2);
