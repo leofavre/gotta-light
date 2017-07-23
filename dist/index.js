@@ -278,8 +278,8 @@ const Light = (function() {
 				canvasWidth = canvas.width,
 				canvasHeight = canvas.height;
 
-			let x = ((canvasWidth - phraseWidth) / 4) + (((phraseWidth + (canvasWidth - phraseWidth) / 2)) * _getPendularEasing(increment)),
-				y = ((canvasHeight - phraseHeight) / 4) + (((phraseHeight + (canvasHeight - phraseHeight) / 2)) * _getPendularEasing(increment + 110));
+			let x = _calculateAxisIncrement(increment, canvasWidth, phraseWidth, 0),
+				y = _calculateAxisIncrement(increment, canvasHeight, phraseHeight, 110);
 
 			element.style.top = `${y}px`;
 			element.style.left = `${x}px`;
@@ -293,6 +293,13 @@ const Light = (function() {
 
 	const stop = () => {
 		window.cancelAnimationFrame(animationFrame);
+	};
+
+	const _calculateAxisIncrement = (increment, canvasMeasure, phraseMeasure, pendularInitialAngle) =>{
+		let minValue = (canvasMeasure - phraseMeasure) / 4,
+			maxValue = phraseMeasure + (canvasMeasure - phraseMeasure) / 2;
+
+		return minValue + (maxValue * _getPendularEasing(increment + pendularInitialAngle));
 	};
 
 	const _getPendularEasing = num => {
@@ -432,14 +439,8 @@ const userInterfaceBindings = [{
 window.addEventListener("resize", evt =>
 	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
 
-/*
-parentElement.addEventListener("mousemove", evt =>
-	store.dispatch(updateLightCoord(evt.clientX, evt.clientY)));
-*/
-
 store.subscribe(Canvas.render(parentElement));
 store.subscribe(UserInterface.update(userInterfaceBindings));
-
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
 
 Light.animate(lightElement);
