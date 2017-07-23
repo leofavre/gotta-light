@@ -296,8 +296,8 @@ const Light = (function() {
 				canvasWidth = canvas.width,
 				canvasHeight = canvas.height;
 
-			let x = _calculateAxisIncrement(increment, canvasWidth, phraseWidth, 210),
-				y = _calculateAxisIncrement(increment, canvasHeight, phraseHeight, 320);
+			let x = _calculateAxisIncrement(increment, canvasWidth, phraseWidth, 120),
+				y = _calculateAxisIncrement(increment, canvasHeight, phraseHeight, 230);
 
 			element.style.top = `${y}px`;
 			element.style.left = `${x}px`;
