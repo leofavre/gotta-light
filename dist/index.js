@@ -46,22 +46,48 @@ const UPDATE_LIGHT_COORD = "UPDATE_LIGHT_COORD";
 const UPDATE_LIGHT_REACH = "UPDATE_LIGHT_REACH";
 const UPDATE_PHRASE_GAP = "UPDATE_PHRASE_GAP";
 const UPDATE_PHRASE_SOURCE = "UPDATE_PHRASE_SOURCE";
-const RESIZE_RAY = "RESIZE_RAY";
+const UPDATE_RAY_APERTURE = "UPDATE_RAY_APERTURE";
+const UPDATE_RAY_REACH = "UPDATE_RAY_REACH";
 
-const updateLightSourceCoord = (x, y) => ({
-	type: UPDATE_LIGHT_COORD,
-	coord: [x, y]
-});
-
-const updateLightSourceReach = reach => ({
-	type: UPDATE_LIGHT_REACH,
-	reach
+const changeAnimationType = name => ({
+	type: CHANGE_ANIMATION_TYPE,
+	name
 });
 
 const resizeCanvas = (width, height) => ({
 	type: RESIZE_CANVAS,
 	width,
 	height
+});
+
+const updateLightCoord = (x, y) => ({
+	type: UPDATE_LIGHT_COORD,
+	coord: [x, y]
+});
+
+const updateLightReach = reach => ({
+	type: UPDATE_LIGHT_REACH,
+	reach
+});
+
+const updatePhraseGap = gap => ({
+	type: UPDATE_PHRASE_GAP,
+	gap
+});
+
+const updatePhraseSource = source => ({
+	type: UPDATE_PHRASE_SOURCE,
+	source
+});
+
+const updateRayAperture = aperture => ({
+	type: UPDATE_RAY_APERTURE,
+	aperture
+});
+
+const updateRayReach = reach => ({
+	type: UPDATE_RAY_REACH,
+	reach
 });
 
 const updatePropsToAction = (state, action, ...props) => {
@@ -75,7 +101,7 @@ const updatePropsToAction = (state, action, ...props) => {
 const animation = (state = initialState.animation, action) => {
 	switch (action.type) {
 		case CHANGE_ANIMATION_TYPE:
-			return action.type;
+			return action.name;
 
 		default:
 			return state;
@@ -104,11 +130,11 @@ const light = (state = initialState.light, action) => {
 
 const phrase = (state = initialState.phrase, action) => {
 	switch (action.type) {
-		case UPDATE_PHRASE_SOURCE:
-			return updatePropsToAction(state, action, "source");
-
 		case UPDATE_PHRASE_GAP:
 			return updatePropsToAction(state, action, "gap");
+
+		case UPDATE_PHRASE_SOURCE:
+			return updatePropsToAction(state, action, "source");
 
 		default:
 			return state;
@@ -117,8 +143,11 @@ const phrase = (state = initialState.phrase, action) => {
 
 const ray = (state = initialState.ray, action) => {
 	switch (action.type) {
-		case RESIZE_RAY:
-			return updatePropsToAction(state, action, "aperture", "reach");
+		case UPDATE_RAY_APERTURE:
+			return updatePropsToAction(state, action, "aperture");
+
+		case UPDATE_RAY_REACH:
+			return updatePropsToAction(state, action, "reach");
 
 		default:
 			return state;
@@ -278,13 +307,20 @@ const Canvas = (function() {
 	};
 })();
 
-const parentElement = document.getElementById("root");
+const parentElement = document.getElementById("root"),
+	phraseGapInput = document.getElementById("phrase-gap-input"),
+	lightReachInput = document.getElementById("light-reach-input"),
+	rayAperture = document.getElementById("ray-aperture-input"),
+	rayReach = document.getElementById("ray-reach-input");
+
+phraseGapInput.addEventListener("change", evt =>
+	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
 
 window.addEventListener("resize", evt =>
 	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
 
 parentElement.addEventListener("mousemove", evt =>
-	store.dispatch(updateLightSourceCoord(evt.clientX, evt.clientY)));
+	store.dispatch(updateLightCoord(evt.clientX, evt.clientY)));
 
 store.subscribe(Canvas.render(parentElement));
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
