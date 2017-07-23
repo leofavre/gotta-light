@@ -159,31 +159,30 @@ const translateAndRotateCoord = (coord, distance, rotation) => {
 	];
 };
 
-class Ray {
-	static calculateDistance(lightReach, lightCoord, rayReach, rayCoord) {
+const Ray = {
+	calculateDistance(lightReach, lightCoord, rayReach, rayCoord) {
 		let distanceToLightSource = calculateDistanceBetweenCoords(lightCoord, rayCoord),
 		scale = 1 - (distanceToLightSource / (lightReach * rayReach));
 		return rayReach * Math.max(Math.min(scale, 1), 0);
-	}
-
-	static calculateRotation(lightCoord, rayCoord) {
+	},
+	calculateRotation(lightCoord, rayCoord) {
 		return calculateAngleBetweenLineAndXAxis(lightCoord, rayCoord);
 	}
-}
+};
 
-class Phrase {
-	static calculateVisibleCoords(canvas, source, gap) {
-		let [xStart, yStart] = this._calculateInitialCoord(canvas, source, gap);
+const Phrase = (function(){
+	const calculateVisibleCoords = (canvas, source, gap) => {
+		let [xStart, yStart] = _calculateInitialCoord(canvas, source, gap);
 
 		return source
 			.map((line, lineIndex) =>
-				this._calculateVisibleCoordsInLine(line, lineIndex, xStart, yStart, gap))
+				_calculateVisibleCoordsInLine(line, lineIndex, xStart, yStart, gap))
 			.reduce(toFlatten);
 	};
 
-	static _calculateInitialCoord(canvas, source, gap) {
-		let phraseWidth = this._calculateWidth(source, gap),
-			phraseHeight = this._calculateHeight(source, gap);
+	const _calculateInitialCoord = (canvas, source, gap) => {
+		let phraseWidth = _calculateWidth(source, gap),
+			phraseHeight = _calculateHeight(source, gap);
 
 		return [
 			Math.round((canvas.width - phraseWidth) / 2),
@@ -191,28 +190,28 @@ class Phrase {
 		];
 	};
 
-	static _calculateWidth(source, gap) {
-		return Math.round(1 + gap * source[0].length);
-	}
+	const _calculateWidth = (source, gap) => Math.round(1 + gap * source[0].length);
 
-	static _calculateHeight(source, gap) {
-		return Math.round(1 + gap * source.length);
-	}
+	const _calculateHeight = (source, gap) => Math.round(1 + gap * source.length);
 
-	static _calculateVisibleCoordsInLine(line, lineIndex, xStart, yStart, gap) {
+	const _calculateVisibleCoordsInLine = (line, lineIndex, xStart, yStart, gap) => {
 		return line
 			.map((dot, dotIndex) =>
-				!!dot ? this._calculateCoord(xStart, yStart, dotIndex, lineIndex, gap) : null)
+				!!dot ? _calculateCoord(xStart, yStart, dotIndex, lineIndex, gap) : null)
 			.filter(rayCoord => rayCoord != null);
 	};
 
-	static _calculateCoord(xStart, yStart, xIndex, yIndex, gap) {
+	const _calculateCoord = (xStart, yStart, xIndex, yIndex, gap) => {
 		return [
 			Math.round(xIndex * gap + xStart),
 			Math.round(yIndex * gap + yStart)
 		];
-	}
-}
+	};
+
+	return {
+		calculateVisibleCoords
+	};
+})();
 
 class Canvas {
 	static render(parentElement) {
