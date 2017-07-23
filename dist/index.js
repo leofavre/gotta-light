@@ -123,6 +123,9 @@ const light = (state = initialState.light, action) => {
 		case UPDATE_LIGHT_COORD:
 			return updatePropsToAction(state, action, "coord");
 
+		case UPDATE_LIGHT_REACH:
+			return updatePropsToAction(state, action, "reach");
+
 		default:
 			return state;
 	}
@@ -310,11 +313,20 @@ const Canvas = (function() {
 const parentElement = document.getElementById("root"),
 	phraseGapInput = document.getElementById("phrase-gap-input"),
 	lightReachInput = document.getElementById("light-reach-input"),
-	rayAperture = document.getElementById("ray-aperture-input"),
-	rayReach = document.getElementById("ray-reach-input");
+	rayApertureInput = document.getElementById("ray-aperture-input"),
+	rayReachInput = document.getElementById("ray-reach-input");
 
-phraseGapInput.addEventListener("change", evt =>
-	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
+phraseGapInput.addEventListener("input", evt =>
+	store.dispatch(updatePhraseGap(evt.target.value)));
+
+lightReachInput.addEventListener("input", evt =>
+	store.dispatch(updateLightReach(evt.target.value)));
+
+rayApertureInput.addEventListener("input", evt =>
+	store.dispatch(updateRayAperture(evt.target.value)));
+
+rayReachInput.addEventListener("input", evt =>
+	store.dispatch(updateRayReach(evt.target.value)));
 
 window.addEventListener("resize", evt =>
 	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
