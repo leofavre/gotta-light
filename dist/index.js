@@ -50,7 +50,7 @@ const resizeStage = (width, height) => ({
 	height
 });
 
-const updateProps = (state, action, ...props) => {
+const updatePropsWithAction = (state, action, ...props) => {
 	let newProps = props.map(name => ({
 		[name]: action[name]
 	}));
@@ -81,10 +81,10 @@ const phrase = (state = initialState.phrase, action) => {
 const ray = (state = initialState.ray, action) => {
 	switch (action.type) {
 		case UPDATE_RAY_GAP:
-			return updateProps(state, action, "gap");
+			return updatePropsWithAction(state, action, "gap");
 
 		case RESIZE_RAY:
-			return updateProps(state, action, "width");
+			return updatePropsWithAction(state, action, "width");
 
 		default:
 			return state;
@@ -94,7 +94,7 @@ const ray = (state = initialState.ray, action) => {
 const canvas = (state = initialState.canvas, action) => {
 	switch (action.type) {
 		case RESIZE_STAGE:
-			return updateProps(state, action, "width", "height");
+			return updatePropsWithAction(state, action, "width", "height");
 
 		default:
 			return state;
@@ -114,6 +114,22 @@ const toFlatten = (prevArr, nextArr) => prevArr.concat(nextArr);
 
 const toSum = (prevNum, nextNum) => prevNum + nextNum;
 
+const deepCopy = (arg) => {
+	if (arg == null || typeof arg !== "object") {
+		return arg;
+	};
+
+	let copy = {};
+
+	for (let attr in arg) {
+		if (arg.hasOwnProperty(attr)) {
+			copy[attr] = arg[attr];
+		};
+	}
+
+	return copy;
+};
+
 const calculateDistanceBetweenCoords = (coordA, coordB) => {
 	return Math.sqrt(coordA
 		.map((coord, index) => Math.pow(coord - coordB[index], 2))
@@ -121,8 +137,7 @@ const calculateDistanceBetweenCoords = (coordA, coordB) => {
 };
 
 const calculateAngleBetweenLineAndXAxis = (coordA, coordB) => {
-	let [x, y] = coordA,
-		[xb, yb] = coordB;
+	let [x, y] = coordA, [xb, yb] = coordB;
 
 	return Math.atan2((yb - y), (xb - x));
 };
@@ -204,9 +219,7 @@ const render = parentElement => {
 			let distance = calculateRayDistance(lightSource, coord, state.ray.width),
 				rotation = calculateRayRotation(lightSource, coord);
 
-			let [x1, y1] = coord,
-				[x2, y2] = translateAndRotateCoord(coord, distance, rotation - 0.05), /* 0.05 may be parameterized */
-				[x3, y3] = translateAndRotateCoord(coord, distance, rotation + 0.05); /* 0.05 may be parameterized */
+			let [x1, y1] = coord, [x2, y2] = translateAndRotateCoord(coord, distance, rotation - 0.05), /* 0.05 may be parameterized */ [x3, y3] = translateAndRotateCoord(coord, distance, rotation + 0.05); /* 0.05 may be parameterized */
 
 			context.fillStyle = '#f1f1f1';
 			context.beginPath();
@@ -216,14 +229,8 @@ const render = parentElement => {
 			context.closePath();
 			context.fill();
 		});
-	
-		lastState = {
-			...state,
-			canvas: { ...state.canvas },
-			lightSource: { ...state.lightSource },
-			phrase: { ...state.phrase },
-			ray: { ...state.ray }
-		};
+
+		lastState = deepCopy(state);
 	};
 };
 
