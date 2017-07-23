@@ -209,14 +209,18 @@ const drawRay = (context, lightSource, coord, rayWidth) => {
 		rotation = calculateRayRotation(lightSource, coord);
 
 	let [x1, y1] = coord,
-		[x2, y2] = translateAndRotateCoord(coord, distance, rotation - 0.05), /* 0.05 may be parameterized */
-		[x3, y3] = translateAndRotateCoord(coord, distance, rotation + 0.05); /* 0.05 may be parameterized */
+		[x2, y2] = translateAndRotateCoord(coord, distance, rotation - 0.1), /* 0.1 may be parameterized */
+		[x3, y3] = translateAndRotateCoord(coord, distance, rotation + 0.1);
 
-	context.fillStyle = '#f1f1f1';
+	let grd = context.createRadialGradient(x1, y1, 0, x1, y1, distance);
+	grd.addColorStop(0, "rgba(255, 255, 255, 0.5)");
+	grd.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+	context.fillStyle = grd;
 	context.beginPath();
 	context.moveTo(x1, y1);
 	context.lineTo(x2, y2);
-	context.lineTo(x3, y3);
+	context.arc(x1, y1, distance, rotation - 0.1, rotation + 0.1);
 	context.closePath();
 	context.fill();
 };
