@@ -159,16 +159,21 @@ const translateAndRotateCoord = (coord, distance, rotation) => {
 	];
 };
 
-const Ray = {
-	calculateDistance(lightReach, lightCoord, rayReach, rayCoord) {
+const Ray = (function() {
+	const calculateDistance = (lightReach, lightCoord, rayReach, rayCoord) => {
 		let distanceToLightSource = calculateDistanceBetweenCoords(lightCoord, rayCoord),
 		scale = 1 - (distanceToLightSource / (lightReach * rayReach));
 		return rayReach * Math.max(Math.min(scale, 1), 0);
-	},
-	calculateRotation(lightCoord, rayCoord) {
-		return calculateAngleBetweenLineAndXAxis(lightCoord, rayCoord);
-	}
-};
+	};
+
+	const calculateRotation = (lightCoord, rayCoord) =>
+		calculateAngleBetweenLineAndXAxis(lightCoord, rayCoord);
+
+	return {
+		calculateDistance,
+		calculateRotation
+	};
+})();
 
 const Phrase = (function() {
 	const calculateVisibleCoords = (canvas, source, gap) => {
