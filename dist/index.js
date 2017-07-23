@@ -29,8 +29,7 @@ const initialState = {
 	phrase: gotLight,
 	ray: {
 		gap: 10,
-		width: 50,
-		aperture: 5
+		width: 100
 	}
 };
 
@@ -51,16 +50,13 @@ const resizeStage = (width, height) => ({
 	height
 });
 
-const updateGap = (state, action) => ({
-	...state,
-	gap: action.gap
-});
+const updateProps = (state, action, ...props) => {
+	let newProps = props.map(name => ({
+		[name]: action[name]
+	}));
 
-const updateSize = (state, action) => ({
-	...state,
-	width: action.width,
-	height: action.height
-});
+	return Object.assign({}, state, ...newProps);
+};
 
 const lightSource = (state = initialState.lightSource, action) => {
 	switch (action.type) {
@@ -85,10 +81,10 @@ const phrase = (state = initialState.phrase, action) => {
 const ray = (state = initialState.ray, action) => {
 	switch (action.type) {
 		case UPDATE_RAY_GAP:
-			return updateGap(state, action);
+			return updateProps(state, action, "gap");
 
 		case RESIZE_RAY:
-			return updateSize(state, action);
+			return updateProps(state, action, "width");
 
 		default:
 			return state;
@@ -98,7 +94,7 @@ const ray = (state = initialState.ray, action) => {
 const canvas = (state = initialState.canvas, action) => {
 	switch (action.type) {
 		case RESIZE_STAGE:
-			return updateSize(state, action);
+			return updateProps(state, action, "width", "height");
 
 		default:
 			return state;
@@ -211,13 +207,14 @@ const render = parentElement => {
 				rotation = calculateRayRotation(lightSource, coord);
 
 			let [x1, y1] = coord,
-				[x2, y2] = translateAndRotateCoord(coord, distance, rotation);
+				[x2, y2] = translateAndRotateCoord(coord, distance, rotation - 0.05),
+				[x3, y3] = translateAndRotateCoord(coord, distance, rotation + 0.05);
 
 			context.fillStyle = '#f1f1f1';
 			context.beginPath();
 			context.moveTo(x1, y1);
-			context.lineTo(x2, y2 + 2);
-			context.lineTo(x2, y2 - 2);
+			context.lineTo(x2, y2);
+			context.lineTo(x3, y3);
 			context.closePath();
 			context.fill();
 		});
