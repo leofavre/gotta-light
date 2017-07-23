@@ -27,7 +27,7 @@ const initialState = {
 			Math.round(window.innerWidth / 3),
 			Math.round(window.innerHeight / 3)
 		],
-		reach: 1 / 500
+		reach: 5
 	},
 	phrase: gotLight,
 	ray: {
@@ -147,7 +147,7 @@ const translateAndRotateCoord = (coord, distance, rotation) => {
 
 const calculateRayDistance = (lightSourceReach, lightSourceCoord, rayCoord, rayMaxDistance) => {
 	let distanceToLightSource = calculateDistanceBetweenCoords(lightSourceCoord, rayCoord),
-		scale = 1 - (distanceToLightSource * lightSourceReach);
+		scale = 1 - (distanceToLightSource / (lightSourceReach * rayMaxDistance));
 
 	return rayMaxDistance * Math.max(Math.min(scale, 1), 0);
 };
