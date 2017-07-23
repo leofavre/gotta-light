@@ -37,12 +37,13 @@ const initialState = {
 	}
 };
 
+const UPDATE_ANIMATION_TYPE = "CHANGE_ANIMATION_TYPE";
 const UPDATE_LIGHT_SOURCE_COORD = "UPDATE_LIGHT_SOURCE_COORD";
 const UPDATE_LIGHT_SOURCE_REACH = "UPDATE_LIGHT_SOURCE_REACH";
 const UPDATE_PHRASE = "UPDATE_PHRASE";
 const UPDATE_RAY_GAP = "UPDATE_RAY_GAP";
 const RESIZE_RAY = "RESIZE_RAY";
-const RESIZE_STAGE = "RESIZE_STAGE";
+const RESIZE_CANVAS = "RESIZE_CANVAS";
 
 const updateLightSourceCoord = (x, y) => ({
 	type: UPDATE_LIGHT_SOURCE_COORD,
@@ -54,8 +55,8 @@ const updateLightSourceReach = reach => ({
 	reach
 });
 
-const resizeStage = (width, height) => ({
-	type: RESIZE_STAGE,
+const resizeCanvas = (width, height) => ({
+	type: RESIZE_CANVAS,
 	width,
 	height
 });
@@ -103,7 +104,7 @@ const ray = (state = initialState.ray, action) => {
 
 const canvas = (state = initialState.canvas, action) => {
 	switch (action.type) {
-		case RESIZE_STAGE:
+		case RESIZE_CANVAS:
 			return updatePropsToAction(state, action, "width", "height");
 
 		default:
@@ -241,10 +242,10 @@ const drawRay = (context, lightSourceReach, lightSourceCoord, rayCoord, rayMaxDi
 const parentElement = document.getElementById("root");
 
 window.addEventListener("resize", evt =>
-	store.dispatch(resizeStage(window.innerWidth, window.innerHeight)));
+	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
 
 parentElement.addEventListener("mousemove", evt =>
 	store.dispatch(updateLightSourceCoord(evt.clientX, evt.clientY)));
 
 store.subscribe(render(parentElement));
-store.dispatch(resizeStage(window.innerWidth, window.innerHeight));
+store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
