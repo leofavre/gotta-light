@@ -20,39 +20,41 @@ const gotLight = [
 const initialState = {
 	animation: "pointer",
 	canvas: {
-		width: window.innerWidth,
-		height: window.innerHeight
+		height: window.innerHeight,
+		width: window.innerWidth
 	},
-	lightSource: {
+	light: {
 		coord: [
 			Math.round(window.innerWidth / 3),
 			Math.round(window.innerHeight / 3)
 		],
 		reach: 5
 	},
-	phrase: gotLight,
-	ray: {
+	phrase: {
 		gap: 9,
+		source: gotLight
+	},
+	ray: {
+		aperture: 12,
 		maxDistance: 80,
-		aperture: 12
 	}
 };
 
 const CHANGE_ANIMATION_TYPE = "CHANGE_ANIMATION_TYPE";
 const RESIZE_CANVAS = "RESIZE_CANVAS";
-const UPDATE_LIGHT_SOURCE_COORD = "UPDATE_LIGHT_SOURCE_COORD";
-const UPDATE_LIGHT_SOURCE_REACH = "UPDATE_LIGHT_SOURCE_REACH";
-const UPDATE_PHRASE = "UPDATE_PHRASE";
-const UPDATE_RAY_GAP = "UPDATE_RAY_GAP";
+const UPDATE_LIGHT_COORD = "UPDATE_LIGHT_COORD";
+const UPDATE_LIGHT_REACH = "UPDATE_LIGHT_REACH";
+const UPDATE_PHRASE_GAP = "UPDATE_PHRASE_GAP";
+const UPDATE_PHRASE_SOURCE = "UPDATE_PHRASE_SOURCE";
 const RESIZE_RAY = "RESIZE_RAY";
 
 const updateLightSourceCoord = (x, y) => ({
-	type: UPDATE_LIGHT_SOURCE_COORD,
+	type: UPDATE_LIGHT_COORD,
 	coord: [x, y]
 });
 
 const updateLightSourceReach = reach => ({
-	type: UPDATE_LIGHT_SOURCE_REACH,
+	type: UPDATE_LIGHT_REACH,
 	reach
 });
 
@@ -83,16 +85,16 @@ const animation = (state = initialState.animation, action) => {
 const canvas = (state = initialState.canvas, action) => {
 	switch (action.type) {
 		case RESIZE_CANVAS:
-			return updatePropsToAction(state, action, "width", "height");
+			return updatePropsToAction(state, action, "height", "width");
 
 		default:
 			return state;
 	}
 };
 
-const lightSource = (state = initialState.lightSource, action) => {
+const light = (state = initialState.light, action) => {
 	switch (action.type) {
-		case UPDATE_LIGHT_SOURCE_COORD:
+		case UPDATE_LIGHT_COORD:
 			return updatePropsToAction(state, action, "coord");
 
 		default:
@@ -102,8 +104,11 @@ const lightSource = (state = initialState.lightSource, action) => {
 
 const phrase = (state = initialState.phrase, action) => {
 	switch (action.type) {
-		case UPDATE_PHRASE:
-			return action.source;
+		case UPDATE_PHRASE_SOURCE:
+			return updatePropsToAction(state, action, "source");
+
+		case UPDATE_PHRASE_GAP:
+			return updatePropsToAction(state, action, "gap");
 
 		default:
 			return state;
@@ -112,11 +117,8 @@ const phrase = (state = initialState.phrase, action) => {
 
 const ray = (state = initialState.ray, action) => {
 	switch (action.type) {
-		case UPDATE_RAY_GAP:
-			return updatePropsToAction(state, action, "gap");
-
 		case RESIZE_RAY:
-			return updatePropsToAction(state, action, "maxDistance", "aperture");
+			return updatePropsToAction(state, action, "aperture", "maxDistance");
 
 		default:
 			return state;
@@ -124,7 +126,7 @@ const ray = (state = initialState.ray, action) => {
 };
 
 const app = Redux.combineReducers({
-	lightSource,
+	light,
 	phrase,
 	ray,
 	canvas
@@ -157,23 +159,23 @@ const translateAndRotateCoord = (coord, distance, rotation) => {
 	];
 };
 
-const calculateRayDistance = (lightSourceReach, lightSourceCoord, rayCoord, rayMaxDistance) => {
-	let distanceToLightSource = calculateDistanceBetweenCoords(lightSourceCoord, rayCoord),
-		scale = 1 - (distanceToLightSource / (lightSourceReach * rayMaxDistance));
+const calculateRayDistance = (lightReach, lightCoord, rayCoord, rayMaxDistance) => {
+	let distanceToLightSource = calculateDistanceBetweenCoords(lightCoord, rayCoord),
+		scale = 1 - (distanceToLightSource / (lightReach * rayMaxDistance));
 
 	return rayMaxDistance * Math.max(Math.min(scale, 1), 0);
 };
 
-const calculateRayRotation = (lightSourceCoord, rayCoord) =>
-	calculateAngleBetweenLineAndXAxis(lightSourceCoord, rayCoord);
+const calculateRayRotation = (lightCoord, rayCoord) =>
+	calculateAngleBetweenLineAndXAxis(lightCoord, rayCoord);
 
-const calculatePhraseWidth = (phrase, gap) => Math.round(1 + gap * phrase[0].length);
+const calculatePhraseWidth = (source, gap) => Math.round(1 + gap * source[0].length);
 
-const calculatePhraseHeight = (phrase, gap) => Math.round(1 + gap * phrase.length);
+const calculatePhraseHeight = (source, gap) => Math.round(1 + gap * source.length);
 
-const calculateTopLeftRayCoord = (canvas, phrase, gap) => {
-	let phraseWidth = calculatePhraseWidth(phrase, gap),
-		phraseHeight = calculatePhraseHeight(phrase, gap);
+const calculateTopLeftCoord = (canvas, source, gap) => {
+	let phraseWidth = calculatePhraseWidth(source, gap),
+		phraseHeight = calculatePhraseHeight(source, gap);
 
 	return [
 		Math.round((canvas.width - phraseWidth) / 2),
@@ -181,22 +183,22 @@ const calculateTopLeftRayCoord = (canvas, phrase, gap) => {
 	];
 };
 
-const calculateRayCoord = (xStart, yStart, xIndex, yIndex, gap) =>
+const calculateCoord = (xStart, yStart, xIndex, yIndex, gap) =>
 	[Math.round(xIndex * gap + xStart), Math.round(yIndex * gap + yStart)];
 
-const calculateVisibleRaysCoordsInLine = (line, lineIndex, xStart, yStart, gap) => {
+const calculateVisibleCoordsInLine = (line, lineIndex, xStart, yStart, gap) => {
 	return line
 		.map((dot, dotIndex) =>
-			!!dot ? calculateRayCoord(xStart, yStart, dotIndex, lineIndex, gap) : null)
+			!!dot ? calculateCoord(xStart, yStart, dotIndex, lineIndex, gap) : null)
 		.filter(rayCoord => rayCoord != null);
 };
 
-const calculateVisibleRayCoords = (canvas, phrase, gap) => {
-	let [xStart, yStart] = calculateTopLeftRayCoord(canvas, phrase, gap);
+const calculateVisibleCoords = (canvas, source, gap) => {
+	let [xStart, yStart] = calculateTopLeftCoord(canvas, source, gap);
 
-	return phrase
+	return source
 		.map((line, lineIndex) =>
-			calculateVisibleRaysCoordsInLine(line, lineIndex, xStart, yStart, gap))
+			calculateVisibleCoordsInLine(line, lineIndex, xStart, yStart, gap))
 		.reduce(toFlatten);
 };
 
@@ -207,14 +209,14 @@ const render = parentElement => {
 
 	return () => {
 		let state = store.getState(),
-			{ lightSource, phrase, ray, canvas } = state,
-			visibleCoords = calculateVisibleRayCoords(canvas, phrase, ray.gap);
+			{ light, phrase, ray, canvas } = state,
+			visibleCoords = calculateVisibleCoords(canvas, phrase.source, phrase.gap);
 
 		updateCanvasDimensions(element, canvas.width, canvas.height);
 		cleanUpCanvas(context, canvas.width, canvas.height);
 
 		visibleCoords.forEach(rayCoord =>
-			drawRay(context, lightSource.reach, lightSource.coord, rayCoord, ray.maxDistance, ray.aperture));
+			drawRay(context, light.reach, light.coord, rayCoord, ray.maxDistance, ray.aperture));
 	};
 };
 
@@ -227,9 +229,9 @@ const cleanUpCanvas = (context, width, height) => {
 	context.clearRect(0, 0, width, height);
 };
 
-const drawRay = (context, lightSourceReach, lightSourceCoord, rayCoord, rayMaxDistance, rayAperture) => {
-	let distance = calculateRayDistance(lightSourceReach, lightSourceCoord, rayCoord, rayMaxDistance),
-		rotationInRadians = calculateRayRotation(lightSourceCoord, rayCoord);
+const drawRay = (context, lightReach, lightCoord, rayCoord, rayMaxDistance, rayAperture) => {
+	let distance = calculateRayDistance(lightReach, lightCoord, rayCoord, rayMaxDistance),
+		rotationInRadians = calculateRayRotation(lightCoord, rayCoord);
 
 	let apertureInRadians = rayAperture * Math.PI / 180,
 		angle1 = rotationInRadians - apertureInRadians / 2,
