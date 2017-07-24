@@ -1,5 +1,5 @@
 {
-  "name": "type-lux-canvas-redux",
+  "name": "got-a-light",
   "version": "1.1.0",
   "description": "Exercising HTML5 Canvas and Redux while porting an old ActionScript project to Javascript.",
   "main": "./dist/index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/leofavre/type-lux-canvas-redux.git"
+    "url": "git+https://github.com/leofavre/got-a-light.git"
   },
   "keywords": [
     "Canvas",
@@ -19,7 +19,7 @@
   "author": "Leonardo Favre <leo@leofavre.com> (http://www.leofavre.com/)",
   "license": "Unlicense",
   "bugs": {
-    "url": "https://github.com/leofavre/type-lux-canvas-redux/issues"
+    "url": "https://github.com/leofavre/got-a-light/issues"
   },
-  "homepage": "https://github.com/leofavre/type-lux-canvas-redux#readme"
+  "homepage": "https://github.com/leofavre/got-a-light#readme"
 }
