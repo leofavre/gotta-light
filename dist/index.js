@@ -283,7 +283,8 @@ const Phrase = (function() {
 
 const Light = (function() {
 	let animationFrame,
-		increment = 0;
+		xIncrement = 0,
+		yIncrement = 0;
 
 	const animate = (element) => {
 		animationFrame = window.requestAnimationFrame(() => {
@@ -296,15 +297,16 @@ const Light = (function() {
 				canvasWidth = canvas.width,
 				canvasHeight = canvas.height;
 
-			let x = _calculateAxisIncrement(increment, canvasWidth, phraseWidth, 45),
-				y = _calculateAxisIncrement(increment, canvasHeight, phraseHeight, 155);
+			let x = _calculateAxisIncrement(xIncrement, canvasWidth, phraseWidth, 45),
+				y = _calculateAxisIncrement(yIncrement, canvasHeight, phraseHeight, 155);
 
 			element.style.top = `${y}px`;
 			element.style.left = `${x}px`;
 
 			store.dispatch(updateLightCoord(x, y));
 
-			increment = increment + 1;
+			xIncrement++;
+			yIncrement++;
 			animate(element);
 		});
 	};
