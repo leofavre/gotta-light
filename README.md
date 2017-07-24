@@ -4,7 +4,7 @@
 
 [![](https://raw.githubusercontent.com/leofavre/got-a-light/master/got-a-light.gif)](https://codepen.io/leofavre/pen/RZwaNM)
 
-Exercising HTML5 Canvas and the Redux architecture while porting an old ActionScript project to Javascript.
+Exercising HTML5 Canvas and the Redux architecture while porting an old Flash project to Javascript.
 
 ## Credits
 
