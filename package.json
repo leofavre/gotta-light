@@ -1,5 +1,5 @@
 {
-  "name": "got-a-light",
+  "name": "gotta-light",
   "version": "1.2.1",
   "description": "Exercising HTML5 Canvas and the Redux architecture while porting an old Flash project to Javascript.",
   "main": "./dist/index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/leofavre/got-a-light.git"
+    "url": "git+https://github.com/leofavre/gotta-light.git"
   },
   "keywords": [
     "Canvas",
@@ -19,7 +19,7 @@
   "author": "Leonardo Favre <leo@leofavre.com> (http://www.leofavre.com/)",
   "license": "Unlicense",
   "bugs": {
-    "url": "https://github.com/leofavre/got-a-light/issues"
+    "url": "https://github.com/leofavre/gotta-light/issues"
   },
-  "homepage": "https://github.com/leofavre/got-a-light#readme"
+  "homepage": "https://github.com/leofavre/gotta-light#readme"
 }
