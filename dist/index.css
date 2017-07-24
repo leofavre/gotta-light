@@ -46,7 +46,7 @@ label span {
 	order: 5;
 }
 
-@media only screen and (max-width: 900px) and (max-height: 600px) {
+@media only screen and (max-width: 1200px) and (max-height: 600px) {
 	#controls label:nth-of-type(n + 3) {
 		display: none;
 	}

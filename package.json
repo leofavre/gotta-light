@@ -1,7 +1,7 @@
 {
   "name": "type-lux-canvas-redux",
   "version": "1.1.0",
-  "description": "Exercising HTML Canvas and Redux while converting an old ActionScript project.",
+  "description": "Exercising HTML5 Canvas and Redux while porting an old ActionScript project to Javascript.",
   "main": "./dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
