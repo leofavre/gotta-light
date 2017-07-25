@@ -45,18 +45,17 @@ const initialState = {
 
 const degToRad = angle => angle * (Math.PI / 180);
 
-
-
 const toFlatten = (prevArr, nextArr) => prevArr.concat(nextArr);
 
 const toSum = (prevNum, nextNum) => prevNum + nextNum;
 
 const parsePath = path => Array.isArray(path) ? path : `${path}`.split(".");
 
-const simpleAt = (obj, path) =>
-	parsePath(path).reduce((obj, key) => {
+const simpleAt = (obj, path) => {
+	return parsePath(path).reduce((obj, key) => {
 		return (obj != null && obj.hasOwnProperty(key)) ? obj[key] : undefined;
 	}, obj);
+};
 
 const calculateDistanceBetweenCoords = (coordA, coordB) => {
 	return Math.sqrt(coordA
@@ -260,9 +259,7 @@ const Ray = (function() {
 	};
 
 	const _draw = (context, rayCoord, translatedCoord, arcDefinition) => {
-		let [x1, y1] = rayCoord,
-			[x2, y2] = translatedCoord,
-			[radius, angle1, angle2] = arcDefinition;
+		let [x1, y1] = rayCoord, [x2, y2] = translatedCoord, [radius, angle1, angle2] = arcDefinition;
 
 		let gradient = context.createRadialGradient(x1, y1, 0, x1, y1, radius);
 		gradient.addColorStop(0, "rgba(255, 255, 255, 0.5)");
@@ -349,17 +346,18 @@ const Light = (function() {
 		return () => {
 			let state = store.getState(),
 				{ autoMove } = state.light;
-	
-			if(autoMove !== lastState) {
+
+			if (autoMove !== lastState) {
 				if (autoMove) {
 					_stopFollowingPointer(parentElement);
 					_startAnimation(lightElement);
-				} else {
+				}
+				else {
 					_stopAnimation();
 					_startFollowingPointer(parentElement);
 				}
 			}
-	
+
 			lastState = autoMove;
 		};
 	};
@@ -393,7 +391,7 @@ const Light = (function() {
 		window.cancelAnimationFrame(animationFrame);
 	};
 
-	const _calculateAxisIncrement = (increment, initialAngle, canvasMeasure, phraseMeasure) =>{
+	const _calculateAxisIncrement = (increment, initialAngle, canvasMeasure, phraseMeasure) => {
 		let minValue = (canvasMeasure - phraseMeasure) / 4,
 			maxValue = phraseMeasure + (canvasMeasure - phraseMeasure) / 2;
 

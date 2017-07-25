@@ -1,6 +1,5 @@
 node_modules/
 npm-debug.log
-.eslint
 .DS_Store
 *.mov
 *.psd
