@@ -1,14 +1,14 @@
-/**************************************************
- *                                                *
- *  Gotta Light?                                  *
- *                                                *
- *  -> click to control animation with the mouse. *
- *  -> click again for automatic animation.       *
- *                                                *
- *  http://leofavre.com                           *
- *  https://github.com/leofavre/gotta-light       *
- *                                                *
- **************************************************/
+/*********************************************
+ *                                           *
+ *  Gotta Light?                             *
+ *                                           *
+ *  -> click to control the animation        *
+ *  -> click again for automatic animation.  *
+ *                                           *
+ *  http://leofavre.com                      *
+ *  https://github.com/leofavre/gotta-light  *
+ *                                           *
+ *********************************************/
 
 
 
