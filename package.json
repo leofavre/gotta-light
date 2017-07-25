@@ -21,5 +21,9 @@
   "bugs": {
     "url": "https://github.com/leofavre/gotta-light/issues"
   },
-  "homepage": "https://github.com/leofavre/gotta-light#readme"
+  "homepage": "https://github.com/leofavre/gotta-light#readme",
+  "devDependencies": {
+    "browser-sync": "^2.18.13",
+    "rollup": "^0.45.2"
+  }
 }
