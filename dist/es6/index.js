@@ -249,16 +249,8 @@ const Phrase = (function() {
 	};
 })();
 
-const Ray = (function() {
-	const render = (context, lightReach, lightCoord, rayReach, rayCoord, rayAperture) => {
-		let arcDefinition = _calculateArc(lightReach, lightCoord, rayReach, rayCoord, rayAperture),
-			[radius, angle] = arcDefinition,
-			translatedCoord = translateAndRotateCoord(rayCoord, radius, angle);
-
-		_draw(context, rayCoord, translatedCoord, arcDefinition);
-	};
-
-	const _draw = (context, rayCoord, translatedCoord, arcDefinition) => {
+const RayView = (function() {
+	const render = (context, rayCoord, translatedCoord, arcDefinition) => {
 		let [x1, y1] = rayCoord, [x2, y2] = translatedCoord, [radius, angle1, angle2] = arcDefinition;
 
 		let gradient = context.createRadialGradient(x1, y1, 0, x1, y1, radius);
@@ -272,6 +264,20 @@ const Ray = (function() {
 		context.arc(x1, y1, radius, angle1, angle2);
 		context.closePath();
 		context.fill();
+	};
+
+	return {
+		render
+	};
+})();
+
+const Ray = (function() {
+	const render = (context, lightReach, lightCoord, rayReach, rayCoord, rayAperture) => {
+		let arcDefinition = _calculateArc(lightReach, lightCoord, rayReach, rayCoord, rayAperture),
+			[radius, angle] = arcDefinition,
+			translatedCoord = translateAndRotateCoord(rayCoord, radius, angle);
+
+		RayView.render(context, rayCoord, translatedCoord, arcDefinition);
 	};
 
 	const _calculateArc = (lightReach, lightCoord, rayReach, rayCoord, rayAperture) => {
@@ -300,7 +306,7 @@ const Ray = (function() {
 })();
 
 const Canvas = (function() {
-	const render = (parentElement) => {
+	const update = (parentElement) => {
 		parentElement.innerHTML = `<canvas></canvas>`;
 		const element = parentElement.children[0];
 		const context = element.getContext('2d');
@@ -331,7 +337,7 @@ const Canvas = (function() {
 	};
 
 	return {
-		render
+		update
 	};
 })();
 
@@ -472,7 +478,7 @@ window.addEventListener("resize", evt =>
 parentElement.addEventListener("click", evt =>
 	store.dispatch(toggleLightAutomaticMovement()));
 
-store.subscribe(Canvas.render(parentElement));
+store.subscribe(Canvas.update(parentElement));
 store.subscribe(Light.update(parentElement, lightElement));
 store.subscribe(Controls.update(controlsBindings));
 

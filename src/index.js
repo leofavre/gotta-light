@@ -7,7 +7,6 @@ import { Canvas } from "./components/canvas/component";
 import { Light } from "./components/light/component";
 import { Controls } from "./components/controls/component";
 
-
 const parentElement = document.getElementById("root"),
 	lightElement = document.getElementById("light"),
 	phraseGapInput = document.getElementById("phrase-gap-input"),
@@ -39,7 +38,7 @@ window.addEventListener("resize", evt =>
 parentElement.addEventListener("click", evt =>
 	store.dispatch(toggleLightAutomaticMovement()));
 
-store.subscribe(Canvas.render(parentElement));
+store.subscribe(Canvas.update(parentElement));
 store.subscribe(Light.update(parentElement, lightElement));
 store.subscribe(Controls.update(controlsBindings));
 

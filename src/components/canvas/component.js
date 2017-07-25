@@ -3,7 +3,7 @@ import { Phrase } from "../phrase/component";
 import { Ray } from "../ray/component";
 
 export const Canvas = (function() {
-	const render = (parentElement) => {
+	const update = (parentElement) => {
 		parentElement.innerHTML = `<canvas></canvas>`;
 		const element = parentElement.children[0];
 		const context = element.getContext('2d');
@@ -34,6 +34,6 @@ export const Canvas = (function() {
 	};
 
 	return {
-		render
+		update
 	};
 })();
