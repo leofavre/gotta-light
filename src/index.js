@@ -1,11 +1,13 @@
+import "./data/banner.txt";
+
 import { store } from "./store/index";
 import { resizeCanvas } from "./components/canvas/actionCreators";
 import { updateLightReach, toggleLightAutomaticMovement } from "./components/light/actionCreators";
 import { updatePhraseGap } from "./components/phrase/actionCreators";
 import { updateRayAperture, updateRayReach } from "./components/ray/actionCreators";
-import { Canvas } from "./components/canvas/component";
-import { Light } from "./components/light/component";
-import { Controls } from "./components/controls/component";
+import { Canvas } from "./components/canvas/container";
+import { Light } from "./components/light/container";
+import { Controls } from "./components/controls/container";
 
 const parentElement = document.getElementById("root"),
 	lightElement = document.getElementById("light"),

@@ -1,6 +1,6 @@
 import { store } from "../../store/index";
-import { Phrase } from "../phrase/component";
-import { Ray } from "../ray/component";
+import { Phrase } from "../phrase/container";
+import { Ray } from "../ray/container";
 
 export const Canvas = (function() {
 	const update = (parentElement) => {

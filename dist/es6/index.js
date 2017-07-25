@@ -1,3 +1,15 @@
+/*********************************************
+ *                                           *
+ *  Gotta Light?                             *
+ *                                           *
+ *  -> click to control the animation        *
+ *  -> click again for automatic animation.  *
+ *                                           *
+ *  http://leofavre.com                      *
+ *  https://github.com/leofavre/gotta-light  *
+ *                                           *
+ *********************************************/
+
 const gottaLight = [
 	"                                                   111  111           111                 11111  ",
 	"                      111     111                  111  111           111        111     1111111 ",

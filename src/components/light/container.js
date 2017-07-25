@@ -1,6 +1,6 @@
 import { store } from "../../store/index";
 import { updateLightCoord } from "./actionCreators";
-import { Phrase } from "../phrase/component";
+import { Phrase } from "../phrase/container";
 import { pendularEasing } from "../../helpers/index";
 
 export const Light = (function() {
