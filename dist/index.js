@@ -1,4 +1,18 @@
-// Phrase data
+/**************************************************
+ *                                                *
+ *  Gotta Light?                                  *
+ *                                                *
+ *  -> click to control animation with the mouse. *
+ *  -> click again for automatic animation.       *
+ *                                                *
+ *  http://leofavre.com                           *
+ *  https://github.com/leofavre/gotta-light       *
+ *                                                *
+ **************************************************/
+
+
+
+
 
 const gottaLight = [
 	"                                                   111  111           111                 11111  ",
@@ -18,8 +32,6 @@ const gottaLight = [
 	" 11111111                                                    11111111                            ",
 	"  111111                                                      111111                             "
 ];
-
-// Redux initial state
 
 const processPhraseSource = arr =>
 	arr.map(str => Array.from(str).map(value => parseInt(value) || 0));
@@ -47,8 +59,6 @@ const initialState = {
 	}
 };
 
-// Redux action names
-
 const TOGGLE_ANIMATION_BEHAVIOUR = "TOGGLE_ANIMATION_BEHAVIOUR";
 const RESIZE_CANVAS = "RESIZE_CANVAS";
 const UPDATE_LIGHT_COORD = "UPDATE_LIGHT_COORD";
@@ -57,8 +67,6 @@ const UPDATE_PHRASE_GAP = "UPDATE_PHRASE_GAP";
 const UPDATE_PHRASE_SOURCE = "UPDATE_PHRASE_SOURCE";
 const UPDATE_RAY_APERTURE = "UPDATE_RAY_APERTURE";
 const UPDATE_RAY_REACH = "UPDATE_RAY_REACH";
-
-// Redux action creators
 
 const toggleAnimationBehaviour = () => ({
 	type: TOGGLE_ANIMATION_BEHAVIOUR
@@ -99,8 +107,6 @@ const updateRayReach = reach => ({
 	type: UPDATE_RAY_REACH,
 	reach
 });
-
-// Redux reducers and store
 
 const updatePropsToAction = (state, action, ...props) => {
 	let newProps = props.map(name => ({
@@ -179,8 +185,6 @@ const app = Redux.combineReducers({
 
 const store = Redux.createStore(app, initialState);
 
-// Helpers
-
 const degToRad = angle => angle * (Math.PI / 180);
 
 const radToDeg = angle => angle * (180 / Math.PI);
@@ -224,8 +228,6 @@ const pendularEasing = num => {
 
 	return 0.5 + (Math.cos(degToRad(num % 360)) / 2);
 };
-
-// Ray
 
 const Ray = (function() {
 	const render = (context, lightReach, lightCoord, rayReach, rayCoord, rayAperture) => {
@@ -279,8 +281,6 @@ const Ray = (function() {
 	};
 })();
 
-// Phrase
-
 const Phrase = (function() {
 	const visibleCoords = (canvas, source, gap) => {
 		let [xStart, yStart] = _calculateInitialCoord(canvas, source, gap);
@@ -325,8 +325,6 @@ const Phrase = (function() {
 		height
 	};
 })();
-
-// Light
 
 const Light = (function() {
 	let animationFrame,
@@ -403,8 +401,6 @@ const Light = (function() {
 	};
 })();
 
-// Canvas
-
 const Canvas = (function() {
 	const render = (parentElement) => {
 		parentElement.innerHTML = `<canvas></canvas>`;
@@ -441,8 +437,6 @@ const Canvas = (function() {
 	};
 })();
 
-// UserInterface
-
 const UserInterface = (function() {
 	const update = (bindings) => {
 		bindings.forEach(binding =>
@@ -471,8 +465,6 @@ const UserInterface = (function() {
 		update
 	};
 })();
-
-// App
 
 const parentElement = document.getElementById("root"),
 	lightElement = document.getElementById("light"),
