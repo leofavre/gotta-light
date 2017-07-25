@@ -25,7 +25,7 @@ const processPhraseSource = arr =>
 	arr.map(str => Array.from(str).map(value => parseInt(value) || 0));
 
 const initialState = {
-	animation: "automatic",
+	automatic: true,
 	canvas: {
 		height: window.innerHeight,
 		width: window.innerWidth
@@ -49,7 +49,7 @@ const initialState = {
 
 // Redux action names
 
-const CHANGE_ANIMATION_TYPE = "CHANGE_ANIMATION_TYPE";
+const TOGGLE_ANIMATION_BEHAVIOUR = "TOGGLE_ANIMATION_BEHAVIOUR";
 const RESIZE_CANVAS = "RESIZE_CANVAS";
 const UPDATE_LIGHT_COORD = "UPDATE_LIGHT_COORD";
 const UPDATE_LIGHT_REACH = "UPDATE_LIGHT_REACH";
@@ -60,9 +60,8 @@ const UPDATE_RAY_REACH = "UPDATE_RAY_REACH";
 
 // Redux action creators
 
-const changeAnimationType = name => ({
-	type: CHANGE_ANIMATION_TYPE,
-	name
+const toggleAnimationBehaviour = () => ({
+	type: TOGGLE_ANIMATION_BEHAVIOUR
 });
 
 const resizeCanvas = (width, height) => ({
@@ -111,10 +110,10 @@ const updatePropsToAction = (state, action, ...props) => {
 	return Object.assign({}, state, ...newProps);
 };
 
-const animation = (state = initialState.animation, action) => {
+const automatic = (state = initialState.automatic, action) => {
 	switch (action.type) {
-		case CHANGE_ANIMATION_TYPE:
-			return action.name;
+		case TOGGLE_ANIMATION_BEHAVIOUR:
+			return !state;
 
 		default:
 			return state;
@@ -171,6 +170,7 @@ const ray = (state = initialState.ray, action) => {
 };
 
 const app = Redux.combineReducers({
+	automatic,
 	light,
 	phrase,
 	ray,
@@ -331,9 +331,24 @@ const Phrase = (function() {
 const Light = (function() {
 	let animationFrame,
 		xIncrement = 0,
-		yIncrement = 0;
+		yIncrement = 0,
+		lastState;
 
-	const animate = (element) => {
+	const update = element => () => {
+		let state = store.getState();
+
+		if(state.automatic !== lastState) {
+			if (state.automatic) {
+				_animate(element);
+			} else {
+				_stop();
+			}
+		}
+
+		lastState = state.automatic;
+	};
+
+	const _animate = (element) => {
 		animationFrame = window.requestAnimationFrame(() => {
 			let state = store.getState(),
 				{ source, gap } = state.phrase,
@@ -354,11 +369,11 @@ const Light = (function() {
 
 			xIncrement = xIncrement + 1;
 			yIncrement = yIncrement + 1;
-			animate(element);
+			_animate(element);
 		});
 	};
 
-	const stop = () => {
+	const _stop = () => {
 		window.cancelAnimationFrame(animationFrame);
 	};
 
@@ -370,8 +385,7 @@ const Light = (function() {
 	};
 
 	return {
-		animate,
-		stop
+		update
 	};
 })();
 
@@ -474,9 +488,10 @@ const userInterfaceBindings = [{
 window.addEventListener("resize", evt =>
 	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
 
+parentElement.addEventListener("click", evt =>
+	store.dispatch(toggleAnimationBehaviour()));
+
 store.subscribe(Canvas.render(parentElement));
+store.subscribe(Light.update(lightElement));
 store.subscribe(UserInterface.update(userInterfaceBindings));
-
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
-
-Light.animate(lightElement);
