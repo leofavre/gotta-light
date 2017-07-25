@@ -37,7 +37,7 @@ const processPhraseSource = arr =>
 	arr.map(str => Array.from(str).map(value => parseInt(value) || 0));
 
 const initialState = {
-	automatic: true,
+	behaviour: true,
 	canvas: {
 		height: window.innerHeight,
 		width: window.innerWidth
@@ -59,7 +59,7 @@ const initialState = {
 	}
 };
 
-const TOGGLE_ANIMATION_BEHAVIOUR = "TOGGLE_ANIMATION_BEHAVIOUR";
+const TOGGLE_BEHAVIOUR = "TOGGLE_BEHAVIOUR";
 const RESIZE_CANVAS = "RESIZE_CANVAS";
 const UPDATE_LIGHT_COORD = "UPDATE_LIGHT_COORD";
 const UPDATE_LIGHT_REACH = "UPDATE_LIGHT_REACH";
@@ -68,8 +68,8 @@ const UPDATE_PHRASE_SOURCE = "UPDATE_PHRASE_SOURCE";
 const UPDATE_RAY_APERTURE = "UPDATE_RAY_APERTURE";
 const UPDATE_RAY_REACH = "UPDATE_RAY_REACH";
 
-const toggleAnimationBehaviour = () => ({
-	type: TOGGLE_ANIMATION_BEHAVIOUR
+const toggleBehaviour = () => ({
+	type: TOGGLE_BEHAVIOUR
 });
 
 const resizeCanvas = (width, height) => ({
@@ -116,9 +116,9 @@ const updatePropsToAction = (state, action, ...props) => {
 	return Object.assign({}, state, ...newProps);
 };
 
-const automatic = (state = initialState.automatic, action) => {
+const behaviour = (state = initialState.behaviour, action) => {
 	switch (action.type) {
-		case TOGGLE_ANIMATION_BEHAVIOUR:
+		case TOGGLE_BEHAVIOUR:
 			return !state;
 
 		default:
@@ -176,7 +176,7 @@ const ray = (state = initialState.ray, action) => {
 };
 
 const app = Redux.combineReducers({
-	automatic,
+	behaviour,
 	light,
 	phrase,
 	ray,
@@ -337,8 +337,8 @@ const Light = (function() {
 		return () => {
 			let state = store.getState();
 	
-			if(state.automatic !== lastState) {
-				if (state.automatic) {
+			if(state.behaviour !== lastState) {
+				if (state.behaviour) {
 					_stopFollowingPointer(parentElement);
 					_startAnimation(lightElement);
 				} else {
@@ -347,7 +347,7 @@ const Light = (function() {
 				}
 			}
 	
-			lastState = state.automatic;
+			lastState = state.behaviour;
 		};
 	};
 
@@ -495,7 +495,7 @@ window.addEventListener("resize", evt =>
 	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
 
 parentElement.addEventListener("click", evt =>
-	store.dispatch(toggleAnimationBehaviour()));
+	store.dispatch(toggleBehaviour()));
 
 store.subscribe(Canvas.render(parentElement));
 store.subscribe(Light.update(parentElement, lightElement));

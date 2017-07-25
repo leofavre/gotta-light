@@ -1,2 +1,3 @@
-var z = "30";
-console.log(z);
+import { store } from "./store/index";
+
+console.log(store);
