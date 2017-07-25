@@ -217,6 +217,14 @@ const translateAndRotateCoord = (coord, distance, rotation) => {
 	];
 };
 
+const pendularEasing = num => {
+	if (num % 90 === 0 && num % 180 !== 0) {
+		return 0.5 + 0;
+	}
+
+	return 0.5 + (Math.cos(degToRad(num % 360)) / 2);
+};
+
 // Ray
 
 const Ray = (function() {
@@ -336,16 +344,16 @@ const Light = (function() {
 				canvasWidth = canvas.width,
 				canvasHeight = canvas.height;
 
-			let x = _calculateAxisIncrement(xIncrement, canvasWidth, phraseWidth, 45),
-				y = _calculateAxisIncrement(yIncrement, canvasHeight, phraseHeight, 155);
+			let x = _calculateAxisIncrement(xIncrement, 45, canvasWidth, phraseWidth),
+				y = _calculateAxisIncrement(yIncrement, 155, canvasHeight, phraseHeight);
 
 			element.style.top = `${y}px`;
 			element.style.left = `${x}px`;
 
 			store.dispatch(updateLightCoord(x, y));
 
-			xIncrement++;
-			yIncrement++;
+			xIncrement = xIncrement + 1;
+			yIncrement = yIncrement + 1;
 			animate(element);
 		});
 	};
@@ -354,19 +362,11 @@ const Light = (function() {
 		window.cancelAnimationFrame(animationFrame);
 	};
 
-	const _calculateAxisIncrement = (increment, canvasMeasure, phraseMeasure, pendularInitialAngle) =>{
+	const _calculateAxisIncrement = (increment, initialAngle, canvasMeasure, phraseMeasure) =>{
 		let minValue = (canvasMeasure - phraseMeasure) / 4,
 			maxValue = phraseMeasure + (canvasMeasure - phraseMeasure) / 2;
 
-		return minValue + (maxValue * _getPendularEasing(increment + pendularInitialAngle));
-	};
-
-	const _getPendularEasing = angleInDegrees => {
-		if (angleInDegrees % 90 === 0 && angleInDegrees % 180 !== 0) {
-			return 0.5 + 0;
-		}
-
-		return 0.5 + (Math.cos(degToRad(angleInDegrees % 360)) / 2);
+		return minValue + (maxValue * pendularEasing(increment + initialAngle));
 	};
 
 	return {
