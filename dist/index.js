@@ -43,7 +43,7 @@ const initialState = {
 	},
 	ray: {
 		aperture: 12,
-		reach: 80,
+		reach: 80
 	}
 };
 
@@ -220,25 +220,61 @@ const translateAndRotateCoord = (coord, distance, rotation) => {
 // Ray
 
 const Ray = (function() {
-	const calculateRadius = (lightReach, lightCoord, rayReach, rayCoord) => {
+	const render = (context, lightReach, lightCoord, rayReach, rayCoord, rayAperture) => {
+		let arcDefinition = _calculateArc(lightReach, lightCoord, rayReach, rayCoord, rayAperture),
+			[radius, angle] = arcDefinition,
+			translatedCoord = translateAndRotateCoord(rayCoord, radius, angle);
+
+		_draw(context, rayCoord, translatedCoord, arcDefinition);
+	};
+
+	const _draw = (context, rayCoord, translatedCoord, arcDefinition) => {
+		let [x1, y1] = rayCoord,
+			[x2, y2] = translatedCoord,
+			[radius, angle1, angle2] = arcDefinition;
+
+		let gradient = context.createRadialGradient(x1, y1, 0, x1, y1, radius);
+		gradient.addColorStop(0, "rgba(255, 255, 255, 0.5)");
+		gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
+		context.fillStyle = gradient;
+		context.beginPath();
+		context.moveTo(x1, y1);
+		context.lineTo(x2, y2);
+		context.arc(x1, y1, radius, angle1, angle2);
+		context.closePath();
+		context.fill();
+	};
+
+	const _calculateArc = (lightReach, lightCoord, rayReach, rayCoord, rayAperture) => {
+		let radius = _calculateRadius(lightReach, lightCoord, rayReach, rayCoord),
+			rotationInRadians = _calculateRotation(lightCoord, rayCoord),
+			apertureInRadians = degToRad(rayAperture),
+			angle1 = rotationInRadians - apertureInRadians / 2,
+			angle2 = rotationInRadians + apertureInRadians / 2;
+
+		return [radius, angle1, angle2];
+	};
+
+	const _calculateRadius = (lightReach, lightCoord, rayReach, rayCoord) => {
 		let distanceToLightSource = calculateDistanceBetweenCoords(lightCoord, rayCoord),
-		scale = 1 - (distanceToLightSource / (lightReach * rayReach));
+			scale = 1 - (distanceToLightSource / (lightReach * rayReach));
+
 		return rayReach * Math.max(Math.min(scale, 1), 0);
 	};
 
-	const calculateRotation = (lightCoord, rayCoord) =>
+	const _calculateRotation = (lightCoord, rayCoord) =>
 		calculateAngleBetweenLineAndXAxis(lightCoord, rayCoord);
 
 	return {
-		calculateRadius,
-		calculateRotation
+		render
 	};
 })();
 
 // Phrase
 
 const Phrase = (function() {
-	const calculateVisibleCoords = (canvas, source, gap) => {
+	const visibleCoords = (canvas, source, gap) => {
 		let [xStart, yStart] = _calculateInitialCoord(canvas, source, gap);
 
 		return source
@@ -247,13 +283,13 @@ const Phrase = (function() {
 			.reduce(toFlatten);
 	};
 
-	const calculateWidth = (source, gap) => Math.round(1 + gap * source[0].length);
+	const width = (source, gap) => Math.round(1 + gap * source[0].length);
 
-	const calculateHeight = (source, gap) => Math.round(1 + gap * source.length);
+	const height = (source, gap) => Math.round(1 + gap * source.length);
 
 	const _calculateInitialCoord = (canvas, source, gap) => {
-		let phraseWidth = calculateWidth(source, gap),
-			phraseHeight = calculateHeight(source, gap);
+		let phraseWidth = width(source, gap),
+			phraseHeight = height(source, gap);
 
 		return [
 			Math.round((canvas.width - phraseWidth) / 2),
@@ -276,9 +312,9 @@ const Phrase = (function() {
 	};
 
 	return {
-		calculateVisibleCoords,
-		calculateWidth,
-		calculateHeight
+		visibleCoords,
+		width,
+		height
 	};
 })();
 
@@ -295,8 +331,8 @@ const Light = (function() {
 				{ source, gap } = state.phrase,
 				{ canvas } = state;
 
-			let phraseWidth = Phrase.calculateWidth(source, gap),
-				phraseHeight = Phrase.calculateHeight(source, gap),
+			let phraseWidth = Phrase.width(source, gap),
+				phraseHeight = Phrase.height(source, gap),
 				canvasWidth = canvas.width,
 				canvasHeight = canvas.height;
 
@@ -325,12 +361,12 @@ const Light = (function() {
 		return minValue + (maxValue * _getPendularEasing(increment + pendularInitialAngle));
 	};
 
-	const _getPendularEasing = num => {
-		if (num % 90 === 0 && num % 180 !== 0) {
+	const _getPendularEasing = angleInDegrees => {
+		if (angleInDegrees % 90 === 0 && angleInDegrees % 180 !== 0) {
 			return 0.5 + 0;
 		}
 
-		return 0.5 + (Math.cos(degToRad(num % 360)) / 2);
+		return 0.5 + (Math.cos(degToRad(angleInDegrees % 360)) / 2);
 	};
 
 	return {
@@ -350,7 +386,7 @@ const Canvas = (function() {
 		return () => {
 			let state = store.getState(),
 				{ light, phrase, ray, canvas } = state,
-				visibleCoords = Phrase.calculateVisibleCoords(canvas, phrase.source, phrase.gap);
+				visibleCoords = Phrase.visibleCoords(canvas, phrase.source, phrase.gap);
 
 			_updateDimensions(element, canvas.width, canvas.height);
 			_cleanUp(context, canvas.width, canvas.height);
@@ -368,37 +404,8 @@ const Canvas = (function() {
 	};
 
 	const _draw = (visibleCoords, context, light, ray) => {
-		let lightReach = light.reach,
-			lightCoord = light.coord,
-			rayReach = ray.reach,
-			rayAperture = ray.aperture;
-
 		visibleCoords.forEach(rayCoord =>
-			_drawRay(context, lightReach, lightCoord, rayReach, rayCoord, rayAperture));
-	};
-
-	const _drawRay = (context, lightReach, lightCoord, rayReach, rayCoord, rayAperture) => {
-		let radius = Ray.calculateRadius(lightReach, lightCoord, rayReach, rayCoord),
-			rotationInRadians = Ray.calculateRotation(lightCoord, rayCoord);
-
-		let apertureInRadians = degToRad(rayAperture),
-			angle1 = rotationInRadians - apertureInRadians / 2,
-			angle2 = rotationInRadians + apertureInRadians / 2;
-
-		let [x1, y1] = rayCoord,
-			[x2, y2] = translateAndRotateCoord(rayCoord, radius, angle1);
-
-		let gradient = context.createRadialGradient(x1, y1, 0, x1, y1, radius);
-		gradient.addColorStop(0, "rgba(255, 255, 255, 0.5)");
-		gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
-
-		context.fillStyle = gradient;
-		context.beginPath();
-		context.moveTo(x1, y1);
-		context.lineTo(x2, y2);
-		context.arc(x1, y1, radius, angle1, angle2);
-		context.closePath();
-		context.fill();
+			Ray.render(context, light.reach, light.coord, ray.reach, rayCoord, ray.aperture));
 	};
 
 	return {
@@ -469,6 +476,7 @@ window.addEventListener("resize", evt =>
 
 store.subscribe(Canvas.render(parentElement));
 store.subscribe(UserInterface.update(userInterfaceBindings));
+
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
 
 Light.animate(lightElement);
