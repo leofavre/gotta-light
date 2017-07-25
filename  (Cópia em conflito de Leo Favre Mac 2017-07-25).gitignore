@@ -1,5 +1,7 @@
 node_modules/
 npm-debug.log
+.eslint
+.jsbeautifyrc
 .DS_Store
 *.mov
 *.psd
