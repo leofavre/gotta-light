@@ -37,17 +37,17 @@ const processPhraseSource = arr =>
 	arr.map(str => Array.from(str).map(value => parseInt(value) || 0));
 
 const initialState = {
-	behaviour: true,
 	canvas: {
 		height: window.innerHeight,
 		width: window.innerWidth
 	},
 	light: {
+		autoMove: true,
 		coord: [
 			Math.round(window.innerWidth / 3),
 			Math.round(window.innerHeight / 3)
 		],
-		reach: 5
+		reach: 5,
 	},
 	phrase: {
 		gap: 9,
@@ -59,8 +59,8 @@ const initialState = {
 	}
 };
 
-const TOGGLE_BEHAVIOUR = "TOGGLE_BEHAVIOUR";
 const RESIZE_CANVAS = "RESIZE_CANVAS";
+const TOGGLE_LIGHT_AUTOMATIC_MOVEMENT = "TOGGLE_LIGHT_AUTOMATIC_MOVEMENT";
 const UPDATE_LIGHT_COORD = "UPDATE_LIGHT_COORD";
 const UPDATE_LIGHT_REACH = "UPDATE_LIGHT_REACH";
 const UPDATE_PHRASE_GAP = "UPDATE_PHRASE_GAP";
@@ -68,14 +68,14 @@ const UPDATE_PHRASE_SOURCE = "UPDATE_PHRASE_SOURCE";
 const UPDATE_RAY_APERTURE = "UPDATE_RAY_APERTURE";
 const UPDATE_RAY_REACH = "UPDATE_RAY_REACH";
 
-const toggleBehaviour = () => ({
-	type: TOGGLE_BEHAVIOUR
-});
-
 const resizeCanvas = (width, height) => ({
 	type: RESIZE_CANVAS,
 	width,
 	height
+});
+
+const toggleLightAutomaticMovement = () => ({
+	type: TOGGLE_LIGHT_AUTOMATIC_MOVEMENT
 });
 
 const updateLightCoord = (x, y) => ({
@@ -116,16 +116,6 @@ const updatePropsToAction = (state, action, ...props) => {
 	return Object.assign({}, state, ...newProps);
 };
 
-const behaviour = (state = initialState.behaviour, action) => {
-	switch (action.type) {
-		case TOGGLE_BEHAVIOUR:
-			return !state;
-
-		default:
-			return state;
-	}
-};
-
 const canvas = (state = initialState.canvas, action) => {
 	switch (action.type) {
 		case RESIZE_CANVAS:
@@ -138,6 +128,9 @@ const canvas = (state = initialState.canvas, action) => {
 
 const light = (state = initialState.light, action) => {
 	switch (action.type) {
+		case TOGGLE_LIGHT_AUTOMATIC_MOVEMENT:
+			return Object.assign({}, state, { autoMove: !state.autoMove });
+
 		case UPDATE_LIGHT_COORD:
 			return updatePropsToAction(state, action, "coord");
 
@@ -176,7 +169,6 @@ const ray = (state = initialState.ray, action) => {
 };
 
 const app = Redux.combineReducers({
-	behaviour,
 	light,
 	phrase,
 	ray,
@@ -335,10 +327,11 @@ const Light = (function() {
 		let lastState;
 
 		return () => {
-			let state = store.getState();
+			let state = store.getState(),
+				{ autoMove } = state.light;
 	
-			if(state.behaviour !== lastState) {
-				if (state.behaviour) {
+			if(autoMove !== lastState) {
+				if (autoMove) {
 					_stopFollowingPointer(parentElement);
 					_startAnimation(lightElement);
 				} else {
@@ -347,7 +340,7 @@ const Light = (function() {
 				}
 			}
 	
-			lastState = state.behaviour;
+			lastState = autoMove;
 		};
 	};
 
@@ -437,7 +430,7 @@ const Canvas = (function() {
 	};
 })();
 
-const UserInterface = (function() {
+const Controls = (function() {
 	const update = (bindings) => {
 		bindings.forEach(binding =>
 			_controlViaInput(binding.input, binding.action));
@@ -495,10 +488,10 @@ window.addEventListener("resize", evt =>
 	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
 
 parentElement.addEventListener("click", evt =>
-	store.dispatch(toggleBehaviour()));
+	store.dispatch(toggleLightAutomaticMovement()));
 
 store.subscribe(Canvas.render(parentElement));
 store.subscribe(Light.update(parentElement, lightElement));
-store.subscribe(UserInterface.update(userInterfaceBindings));
+store.subscribe(Controls.update(userInterfaceBindings));
 
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
