@@ -331,24 +331,29 @@ const Phrase = (function() {
 const Light = (function() {
 	let animationFrame,
 		xIncrement = 0,
-		yIncrement = 0,
-		lastState;
+		yIncrement = 0;
 
-	const update = element => () => {
-		let state = store.getState();
+	const update = (parentElement, lightElement) => {
+		let lastState;
 
-		if(state.automatic !== lastState) {
-			if (state.automatic) {
-				_animate(element);
-			} else {
-				_stop();
+		return () => {
+			let state = store.getState();
+	
+			if(state.automatic !== lastState) {
+				if (state.automatic) {
+					_stopFollowingPointer(parentElement);
+					_startAnimation(lightElement);
+				} else {
+					_stopAnimation();
+					_startFollowingPointer(parentElement);
+				}
 			}
-		}
-
-		lastState = state.automatic;
+	
+			lastState = state.automatic;
+		};
 	};
 
-	const _animate = (element) => {
+	const _startAnimation = element => {
 		animationFrame = window.requestAnimationFrame(() => {
 			let state = store.getState(),
 				{ source, gap } = state.phrase,
@@ -369,11 +374,11 @@ const Light = (function() {
 
 			xIncrement = xIncrement + 1;
 			yIncrement = yIncrement + 1;
-			_animate(element);
+			_startAnimation(element);
 		});
 	};
 
-	const _stop = () => {
+	const _stopAnimation = () => {
 		window.cancelAnimationFrame(animationFrame);
 	};
 
@@ -383,6 +388,15 @@ const Light = (function() {
 
 		return minValue + (maxValue * pendularEasing(increment + initialAngle));
 	};
+
+	const _startFollowingPointer = element =>
+		element.addEventListener("mousemove", _handleMousemove);
+
+	const _stopFollowingPointer = element =>
+		element.removeEventListener("mousemove", _handleMousemove);
+
+	const _handleMousemove = evt =>
+		store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
 
 	return {
 		update
@@ -492,6 +506,7 @@ parentElement.addEventListener("click", evt =>
 	store.dispatch(toggleAnimationBehaviour()));
 
 store.subscribe(Canvas.render(parentElement));
-store.subscribe(Light.update(lightElement));
+store.subscribe(Light.update(parentElement, lightElement));
 store.subscribe(UserInterface.update(userInterfaceBindings));
+
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
