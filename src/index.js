@@ -8,6 +8,7 @@ import { updateRayAperture, updateRayReach } from "./components/ray/actionCreato
 import { Canvas } from "./components/canvas/container";
 import { Light } from "./components/light/container";
 import { Controls } from "./components/controls/container";
+import { Ticker } from "./components/ticker/container";
 
 const parentElement = document.getElementById("root"),
 	lightElement = document.getElementById("light"),
@@ -33,6 +34,8 @@ const controlsBindings = [{
 	action: updateRayReach,
 	stateProp: "ray.reach"
 }];
+
+Ticker.start();
 
 window.addEventListener("resize", evt =>
 	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));

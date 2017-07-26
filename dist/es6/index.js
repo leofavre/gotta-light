@@ -459,6 +459,35 @@ const Controls = (function() {
 	};
 })();
 
+const Ticker = (function() {
+	let animationFrame,
+		tickers = {};
+
+	const addTicker = (callback, id, start, increment, reset) => {
+		tickers[id] = {
+			callback,
+			start,
+			increment,
+			reset
+		};
+	};
+
+	const start = () => {
+		animationFrame = window.requestAnimationFrame(() => {
+			console.log(tickers);
+			start();
+		});
+	};
+
+	const stop = () => window.cancelAnimationFrame(animationFrame);
+
+	return {
+		addTicker,
+		start,
+		stop
+	};
+})();
+
 const parentElement = document.getElementById("root");
 const lightElement = document.getElementById("light");
 const phraseGapInput = document.getElementById("phrase-gap-input");
@@ -483,6 +512,8 @@ const controlsBindings = [{
 	action: updateRayReach,
 	stateProp: "ray.reach"
 }];
+
+Ticker.start();
 
 window.addEventListener("resize", evt =>
 	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
