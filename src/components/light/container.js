@@ -5,6 +5,7 @@ import { pendularEasing } from "../../helpers/index";
 import { Ticker } from "../../helpers/ticker";
 
 export const Light = (function() {
+	let _handleBefore, _handleTick, _handleAfter;
 
 	const update = (parentElement, lightElement) => {
 		let lastState;
@@ -30,38 +31,36 @@ export const Light = (function() {
 	const _startAnimation = element => {
 		let state, source, gap, canvas, x, y;
 
-		Ticker.add("x", 45, 1, _resetOnFullCircle);
-
-		Ticker.add("y", 155, 1.2, _resetOnFullCircle);
-
-		Ticker.onBeforeEvery(() => {
-			console.log("before");
-
+		_handleBefore = () => {
 			state = store.getState(),
 			{ source, gap } = state.phrase,
 			{ canvas } = state;
-		});
+		};
 
-		Ticker.onTick(tick => {
-			console.log(tick.x, tick.y);
-
+		_handleTick = tick => {
 			x = _calculateAxisIncrement(tick.x, canvas.width, Phrase.width(source, gap));
 			y = _calculateAxisIncrement(tick.y, canvas.height, Phrase.height(source, gap));
-		});
+		};
 
-		Ticker.onAfterEvery(() => {
-			console.log("after");
-
+		_handleAfter = () => {
 			element.style.left = `${x}px`;
 			element.style.top = `${y}px`;
 			store.dispatch(updateLightCoord(x, y));
-		});
+		};
 
-		Ticker.start();
+		Ticker.add("x", 45, 1, _resetOnFullCircle);
+		Ticker.add("y", 155, 1.2, _resetOnFullCircle);
+		Ticker.on("before", _handleBefore);
+		Ticker.on("tick", _handleTick);
+		Ticker.on("after", _handleAfter);
 	};
 
 	const _stopAnimation = () => {
-		Ticker.stop();
+		Ticker.remove("x");
+		Ticker.remove("y");
+		Ticker.off("before", _handleBefore);
+		Ticker.off("tick", _handleTick);
+		Ticker.off("after", _handleAfter);
 	};
 
 	const _calculateAxisIncrement = (value, canvasMeasure, phraseMeasure) =>{

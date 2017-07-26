@@ -354,60 +354,71 @@ const Canvas = (function() {
 })();
 
 const Ticker = (function() {
-	let animationFrame,
-		tickers = {},
-		on = {
-			beforeEvery: [],
-			afterEvery: [],
-			tick: []
+	let tickers = {},
+		listeners = {
+			before: new Map(),
+			tick: new Map(),
+			after: new Map()
 		};
 
 	const add = (id, start, increment, reset) => {
 		remove(id);
 		_update(id, start, increment, reset);
+		return this;
 	};
 
 	const remove = id => {
 		delete tickers[id];
+		return this;
 	};
 
-	const onBeforeEvery = callback => on.beforeEvery.push(callback);
-
-	const onAfterEvery = callback => on.afterEvery.push(callback);
-
-	const onTick = callback => on.tick.push(callback);
-
-	const start = () => {
-		console.log("------------" + animationFrame + "-----------------");
-		window.cancelAnimationFrame(animationFrame);
-
-		animationFrame = window.requestAnimationFrame(() => {
-			_doTickCycle();
-			start();
-		});
-	};
-
-	const stop = () => window.cancelAnimationFrame(animationFrame);
-
-	const _doTickCycle = () => {
-		on.beforeEvery.forEach(callback => callback());
-
-		let values = {};
-
-		Object.keys(tickers).forEach(id => {
-			let ticker = tickers[id],
-				newValue = _increment(ticker),
-				{ start, increment, reset } = ticker;
-
-			values[id] = newValue;
-			_update(id, start, increment, reset, newValue);
-		});
-
-		if (Object.keys(values).length > 0) {
-			on.tick.forEach(callback => callback(values));
+	const on = (evtName, callback) => {
+		if (listeners.hasOwnProperty(evtName)) {
+			listeners[evtName].set(callback, callback);
 		}
+		return this;
+	};
 
-		on.afterEvery.forEach(callback => callback());
+	const off = (evtName, callback) => {
+		if (listeners.hasOwnProperty(evtName)) {
+			listeners[evtName].delete(callback);
+		}
+		return this;
+	};
+
+	const _start = () => {
+		window.requestAnimationFrame(() => {
+			_doTickerCycle();
+			_start();
+		});
+	};
+
+	const _doTickerCycle = () => {
+		listeners.before.forEach(callback => callback());
+		listeners.tick.forEach(callback => callback(_getValues()));
+		_incrementAndUpdateTickers();
+		listeners.after.forEach(callback => callback());
+	};
+
+	const _getValues = () => {
+		let result = {};
+		Object.keys(tickers).forEach(id => result[id] = tickers[id].value);
+		return result;
+	};
+
+	const _incrementAndUpdateTickers = () => {
+		Object.keys(tickers).forEach(id => _incrementAndUpdateTicker(id, tickers[id]));
+	};
+
+	const _incrementAndUpdateTicker = (id, ticker) => {
+		let newValue = _increment(ticker),
+			{ start, increment, reset } = ticker;
+
+		_update(id, start, increment, reset, newValue);
+	};
+
+	const _update = (id, start = 0, increment = 1, reset = arg => arg, value = start) => {
+		tickers[id] = { start, increment, reset, value };
 	};
 
 	const _increment = ticker => {
@@ -417,22 +428,18 @@ const Ticker = (function() {
 		return value;
 	};
 
-	const _update = (id, start = 0, increment = 1, reset = arg => arg, value = start) => {
-		tickers[id] = { start, increment, reset, value };
-	};
+	_start();
 
 	return {
 		add,
 		remove,
-		onBeforeEvery,
-		onAfterEvery,
-		onTick,
-		start,
-		stop
+		on,
+		off
 	};
 })();
 
 const Light = (function() {
+	let _handleBefore, _handleTick, _handleAfter;
 
 	const update = (parentElement, lightElement) => {
 		let lastState;
@@ -459,36 +466,34 @@ const Light = (function() {
 	const _startAnimation = element => {
 		let state, source, gap, canvas, x, y;
 
-		Ticker.add("x", 45, 1, _resetOnFullCircle);
-
-		Ticker.add("y", 155, 1.2, _resetOnFullCircle);
-
-		Ticker.onBeforeEvery(() => {
-			console.log("before");
-
+		_handleBefore = () => {
 			state = store.getState(), { source, gap } = state.phrase, { canvas } = state;
-		});
+		};
 
-		Ticker.onTick(tick => {
-			console.log(tick.x, tick.y);
-
+		_handleTick = tick => {
 			x = _calculateAxisIncrement(tick.x, canvas.width, Phrase.width(source, gap));
 			y = _calculateAxisIncrement(tick.y, canvas.height, Phrase.height(source, gap));
-		});
+		};
 
-		Ticker.onAfterEvery(() => {
-			console.log("after");
-
+		_handleAfter = () => {
 			element.style.left = `${x}px`;
 			element.style.top = `${y}px`;
 			store.dispatch(updateLightCoord(x, y));
-		});
+		};
 
-		Ticker.start();
+		Ticker.add("x", 45, 1, _resetOnFullCircle);
+		Ticker.add("y", 155, 1.2, _resetOnFullCircle);
+		Ticker.on("before", _handleBefore);
+		Ticker.on("tick", _handleTick);
+		Ticker.on("after", _handleAfter);
 	};
 
 	const _stopAnimation = () => {
-		Ticker.stop();
+		Ticker.remove("x");
+		Ticker.remove("y");
+		Ticker.off("before", _handleBefore);
+		Ticker.off("tick", _handleTick);
+		Ticker.off("after", _handleAfter);
 	};
 
 	const _calculateAxisIncrement = (value, canvasMeasure, phraseMeasure) => {
