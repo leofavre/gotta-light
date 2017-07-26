@@ -2,11 +2,9 @@ import { store } from "../../store/index";
 import { updateLightCoord } from "./actionCreators";
 import { Phrase } from "../phrase/container";
 import { pendularEasing } from "../../helpers/index";
+import { Ticker } from "../../helpers/ticker";
 
 export const Light = (function() {
-	let animationFrame,
-		xIncrement = 0,
-		yIncrement = 0;
 
 	const update = (parentElement, lightElement) => {
 		let lastState;
@@ -15,7 +13,7 @@ export const Light = (function() {
 			let state = store.getState(),
 				{ autoMove } = state.light;
 	
-			if(autoMove !== lastState) {
+			if (autoMove !== lastState) {
 				if (autoMove) {
 					_stopFollowingPointer(parentElement);
 					_startAnimation(lightElement);
@@ -30,40 +28,50 @@ export const Light = (function() {
 	};
 
 	const _startAnimation = element => {
-		animationFrame = window.requestAnimationFrame(() => {
-			let state = store.getState(),
-				{ source, gap } = state.phrase,
-				{ canvas } = state;
+		let state, source, gap, canvas, x, y;
 
-			let phraseWidth = Phrase.width(source, gap),
-				phraseHeight = Phrase.height(source, gap),
-				canvasWidth = canvas.width,
-				canvasHeight = canvas.height;
+		Ticker.add("x", 45, 1, _resetOnFullCircle);
 
-			let x = _calculateAxisIncrement(xIncrement, 45, canvasWidth, phraseWidth),
-				y = _calculateAxisIncrement(yIncrement, 155, canvasHeight, phraseHeight);
+		Ticker.add("y", 155, 1.2, _resetOnFullCircle);
 
-			element.style.top = `${y}px`;
-			element.style.left = `${x}px`;
+		Ticker.onBeforeEvery(() => {
+			console.log("before");
 
-			store.dispatch(updateLightCoord(x, y));
-
-			xIncrement = xIncrement + 1;
-			yIncrement = yIncrement + 1;
-			_startAnimation(element);
+			state = store.getState(),
+			{ source, gap } = state.phrase,
+			{ canvas } = state;
 		});
+
+		Ticker.onTick(tick => {
+			console.log(tick.x, tick.y);
+
+			x = _calculateAxisIncrement(tick.x, canvas.width, Phrase.width(source, gap));
+			y = _calculateAxisIncrement(tick.y, canvas.height, Phrase.height(source, gap));
+		});
+
+		Ticker.onAfterEvery(() => {
+			console.log("after");
+
+			element.style.left = `${x}px`;
+			element.style.top = `${y}px`;
+			store.dispatch(updateLightCoord(x, y));
+		});
+
+		Ticker.start();
 	};
 
 	const _stopAnimation = () => {
-		window.cancelAnimationFrame(animationFrame);
+		Ticker.stop();
 	};
 
-	const _calculateAxisIncrement = (increment, initialAngle, canvasMeasure, phraseMeasure) =>{
+	const _calculateAxisIncrement = (value, canvasMeasure, phraseMeasure) =>{
 		let minValue = (canvasMeasure - phraseMeasure) / 4,
 			maxValue = phraseMeasure + (canvasMeasure - phraseMeasure) / 2;
 
-		return minValue + (maxValue * pendularEasing(increment + initialAngle));
+		return minValue + (maxValue * pendularEasing(value));
 	};
+
+	const _resetOnFullCircle = value => (value >= 360) ? 0 : value;
 
 	const _startFollowingPointer = element =>
 		element.addEventListener("mousemove", _handleMousemove);

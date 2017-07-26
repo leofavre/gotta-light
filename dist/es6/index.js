@@ -353,10 +353,86 @@ const Canvas = (function() {
 	};
 })();
 
-const Light = (function() {
+const Ticker = (function() {
 	let animationFrame,
-		xIncrement = 0,
-		yIncrement = 0;
+		tickers = {},
+		on = {
+			beforeEvery: [],
+			afterEvery: [],
+			tick: []
+		};
+
+	const add = (id, start, increment, reset) => {
+		remove(id);
+		_update(id, start, increment, reset);
+	};
+
+	const remove = id => {
+		delete tickers[id];
+	};
+
+	const onBeforeEvery = callback => on.beforeEvery.push(callback);
+
+	const onAfterEvery = callback => on.afterEvery.push(callback);
+
+	const onTick = callback => on.tick.push(callback);
+
+	const start = () => {
+		console.log("------------" + animationFrame + "-----------------");
+		window.cancelAnimationFrame(animationFrame);
+
+		animationFrame = window.requestAnimationFrame(() => {
+			_doTickCycle();
+			start();
+		});
+	};
+
+	const stop = () => window.cancelAnimationFrame(animationFrame);
+
+	const _doTickCycle = () => {
+		on.beforeEvery.forEach(callback => callback());
+
+		let values = {};
+
+		Object.keys(tickers).forEach(id => {
+			let ticker = tickers[id],
+				newValue = _increment(ticker),
+				{ start, increment, reset } = ticker;
+
+			values[id] = newValue;
+			_update(id, start, increment, reset, newValue);
+		});
+
+		if (Object.keys(values).length > 0) {
+			on.tick.forEach(callback => callback(values));
+		}
+
+		on.afterEvery.forEach(callback => callback());
+	};
+
+	const _increment = ticker => {
+		let { increment, reset, value } = ticker;
+		value = value + increment;
+		value = reset(value);
+		return value;
+	};
+
+	const _update = (id, start = 0, increment = 1, reset = arg => arg, value = start) => {
+		tickers[id] = { start, increment, reset, value };
+	};
+
+	return {
+		add,
+		remove,
+		onBeforeEvery,
+		onAfterEvery,
+		onTick,
+		start,
+		stop
+	};
+})();
+
+const Light = (function() {
 
 	const update = (parentElement, lightElement) => {
 		let lastState;
@@ -381,40 +457,48 @@ const Light = (function() {
 	};
 
 	const _startAnimation = element => {
-		animationFrame = window.requestAnimationFrame(() => {
-			let state = store.getState(),
-				{ source, gap } = state.phrase,
-				{ canvas } = state;
+		let state, source, gap, canvas, x, y;
 
-			let phraseWidth = Phrase.width(source, gap),
-				phraseHeight = Phrase.height(source, gap),
-				canvasWidth = canvas.width,
-				canvasHeight = canvas.height;
+		Ticker.add("x", 45, 1, _resetOnFullCircle);
 
-			let x = _calculateAxisIncrement(xIncrement, 45, canvasWidth, phraseWidth),
-				y = _calculateAxisIncrement(yIncrement, 155, canvasHeight, phraseHeight);
+		Ticker.add("y", 155, 1.2, _resetOnFullCircle);
 
-			element.style.top = `${y}px`;
-			element.style.left = `${x}px`;
+		Ticker.onBeforeEvery(() => {
+			console.log("before");
 
-			store.dispatch(updateLightCoord(x, y));
-
-			xIncrement = xIncrement + 1;
-			yIncrement = yIncrement + 1;
-			_startAnimation(element);
+			state = store.getState(), { source, gap } = state.phrase, { canvas } = state;
 		});
+
+		Ticker.onTick(tick => {
+			console.log(tick.x, tick.y);
+
+			x = _calculateAxisIncrement(tick.x, canvas.width, Phrase.width(source, gap));
+			y = _calculateAxisIncrement(tick.y, canvas.height, Phrase.height(source, gap));
+		});
+
+		Ticker.onAfterEvery(() => {
+			console.log("after");
+
+			element.style.left = `${x}px`;
+			element.style.top = `${y}px`;
+			store.dispatch(updateLightCoord(x, y));
+		});
+
+		Ticker.start();
 	};
 
 	const _stopAnimation = () => {
-		window.cancelAnimationFrame(animationFrame);
+		Ticker.stop();
 	};
 
-	const _calculateAxisIncrement = (increment, initialAngle, canvasMeasure, phraseMeasure) => {
+	const _calculateAxisIncrement = (value, canvasMeasure, phraseMeasure) => {
 		let minValue = (canvasMeasure - phraseMeasure) / 4,
 			maxValue = phraseMeasure + (canvasMeasure - phraseMeasure) / 2;
 
-		return minValue + (maxValue * pendularEasing(increment + initialAngle));
+		return minValue + (maxValue * pendularEasing(value));
 	};
+
+	const _resetOnFullCircle = value => (value >= 360) ? 0 : value;
 
 	const _startFollowingPointer = element =>
 		element.addEventListener("mousemove", _handleMousemove);
@@ -459,35 +543,6 @@ const Controls = (function() {
 	};
 })();
 
-const Ticker = (function() {
-	let animationFrame,
-		tickers = {};
-
-	const addTicker = (callback, id, start, increment, reset) => {
-		tickers[id] = {
-			callback,
-			start,
-			increment,
-			reset
-		};
-	};
-
-	const start = () => {
-		animationFrame = window.requestAnimationFrame(() => {
-			console.log(tickers);
-			start();
-		});
-	};
-
-	const stop = () => window.cancelAnimationFrame(animationFrame);
-
-	return {
-		addTicker,
-		start,
-		stop
-	};
-})();
-
 const parentElement = document.getElementById("root");
 const lightElement = document.getElementById("light");
 const phraseGapInput = document.getElementById("phrase-gap-input");
@@ -512,8 +567,6 @@ const controlsBindings = [{
 	action: updateRayReach,
 	stateProp: "ray.reach"
 }];
-
-Ticker.start();
 
 window.addEventListener("resize", evt =>
 	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
