@@ -9,26 +9,26 @@ export const Ticker = (function() {
 	const add = (id, start, increment, reset) => {
 		remove(id);
 		_update(id, start, increment, reset);
-		return this;
+		return Ticker;
 	};
 
 	const remove = id => {
 		delete tickers[id];
-		return this;
+		return Ticker;
 	};
 
 	const on = (evtName, callback) => {
 		if (listeners.hasOwnProperty(evtName)) {
 			listeners[evtName].set(callback, callback);
 		}
-		return this;
+		return Ticker;
 	};
 
 	const off = (evtName, callback) => {
 		if (listeners.hasOwnProperty(evtName)) {
 			listeners[evtName].delete(callback);
 		}
-		return this;
+		return Ticker;
 	};
 
 	const _start = () => {

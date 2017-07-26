@@ -43,24 +43,26 @@ export const Light = (function() {
 		};
 
 		_handleAfter = () => {
-			element.style.left = `${x}px`;
-			element.style.top = `${y}px`;
+			// element.style.left = `${x}px`;
+			// element.style.top = `${y}px`;
 			store.dispatch(updateLightCoord(x, y));
 		};
 
-		Ticker.add("x", 45, 1, _resetOnFullCircle);
-		Ticker.add("y", 155, 1.2, _resetOnFullCircle);
-		Ticker.on("before", _handleBefore);
-		Ticker.on("tick", _handleTick);
-		Ticker.on("after", _handleAfter);
+		Ticker
+			.on("before", _handleBefore)
+			.on("tick", _handleTick)
+			.on("after", _handleAfter)
+			.add("x", 45, 1, _resetOnLap)
+			.add("y", 155, 1.2, _resetOnLap);
 	};
 
 	const _stopAnimation = () => {
-		Ticker.remove("x");
-		Ticker.remove("y");
-		Ticker.off("before", _handleBefore);
-		Ticker.off("tick", _handleTick);
-		Ticker.off("after", _handleAfter);
+		Ticker
+			.off("before", _handleBefore)
+			.off("tick", _handleTick)
+			.off("after", _handleAfter)
+			.remove("x")
+			.remove("y");
 	};
 
 	const _calculateAxisIncrement = (value, canvasMeasure, phraseMeasure) =>{
@@ -70,7 +72,7 @@ export const Light = (function() {
 		return minValue + (maxValue * pendularEasing(value));
 	};
 
-	const _resetOnFullCircle = value => (value >= 360) ? 0 : value;
+	const _resetOnLap = value => (value >= 360) ? 0 : value;
 
 	const _startFollowingPointer = element =>
 		element.addEventListener("mousemove", _handleMousemove);

@@ -354,6 +354,8 @@ const Canvas = (function() {
 })();
 
 const Ticker = (function() {
+	console.log("once");
+
 	let tickers = {},
 		listeners = {
 			before: new Map(),
@@ -364,26 +366,26 @@ const Ticker = (function() {
 	const add = (id, start, increment, reset) => {
 		remove(id);
 		_update(id, start, increment, reset);
-		return this;
+		return Ticker;
 	};
 
 	const remove = id => {
 		delete tickers[id];
-		return this;
+		return Ticker;
 	};
 
 	const on = (evtName, callback) => {
 		if (listeners.hasOwnProperty(evtName)) {
 			listeners[evtName].set(callback, callback);
 		}
-		return this;
+		return Ticker;
 	};
 
 	const off = (evtName, callback) => {
 		if (listeners.hasOwnProperty(evtName)) {
 			listeners[evtName].delete(callback);
 		}
-		return this;
+		return Ticker;
 	};
 
 	const _start = () => {
@@ -476,24 +478,26 @@ const Light = (function() {
 		};
 
 		_handleAfter = () => {
-			element.style.left = `${x}px`;
-			element.style.top = `${y}px`;
+			// element.style.left = `${x}px`;
+			// element.style.top = `${y}px`;
 			store.dispatch(updateLightCoord(x, y));
 		};
 
-		Ticker.add("x", 45, 1, _resetOnFullCircle);
-		Ticker.add("y", 155, 1.2, _resetOnFullCircle);
-		Ticker.on("before", _handleBefore);
-		Ticker.on("tick", _handleTick);
-		Ticker.on("after", _handleAfter);
+		Ticker
+			.add("x", 45, 1, _resetOnLap)
+			.add("y", 155, 1.2, _resetOnLap)
+			.on("before", _handleBefore)
+			.on("tick", _handleTick)
+			.on("after", _handleAfter);
 	};
 
 	const _stopAnimation = () => {
-		Ticker.remove("x");
-		Ticker.remove("y");
-		Ticker.off("before", _handleBefore);
-		Ticker.off("tick", _handleTick);
-		Ticker.off("after", _handleAfter);
+		Ticker
+			.remove("x")
+			.remove("y")
+			.off("before", _handleBefore)
+			.off("tick", _handleTick)
+			.off("after", _handleAfter);
 	};
 
 	const _calculateAxisIncrement = (value, canvasMeasure, phraseMeasure) => {
@@ -503,7 +507,7 @@ const Light = (function() {
 		return minValue + (maxValue * pendularEasing(value));
 	};
 
-	const _resetOnFullCircle = value => (value >= 360) ? 0 : value;
+	const _resetOnLap = value => (value >= 360) ? 0 : value;
 
 	const _startFollowingPointer = element =>
 		element.addEventListener("mousemove", _handleMousemove);
