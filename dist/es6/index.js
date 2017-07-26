@@ -480,7 +480,7 @@ const Light = (function() {
 			.on("tick", _handleTick)
 			.on("after", _handleAfter)
 			.add("x", 45, 1, _resetOnLap)
-			.add("y", 155, 1.5, _resetOnLap);
+			.add("y", 155, 1.6015625, _resetOnLap);
 	};
 
 	const _stopAnimation = () => {
@@ -544,7 +544,7 @@ const Controls = (function() {
 	};
 })();
 
-const canvasElement = document.getElementById("root").children[0];
+const canvasElement = document.getElementById("canvas");
 const canvasContext = canvasElement.getContext('2d');
 	lightElement = document.getElementById("light"),
 	phraseGapInput = document.getElementById("phrase-gap-input"),

@@ -1,5 +1,5 @@
 import { calculateAngleBetweenLineAndXAxis, calculateDistanceBetweenCoords, degToRad, translateAndRotateCoord } from "../../helpers/index";
-import { RayView } from "./view";
+import { RayView } from "./RayView";
 
 export const Ray = (function() {
 	const render = (context, lightReach, lightCoord, rayReach, rayCoord, rayAperture) => {

@@ -5,11 +5,11 @@ import { resizeCanvas } from "./components/canvas/actionCreators";
 import { updateLightReach, toggleLightAutomaticMovement } from "./components/light/actionCreators";
 import { updatePhraseGap } from "./components/phrase/actionCreators";
 import { updateRayAperture, updateRayReach } from "./components/ray/actionCreators";
-import { Canvas } from "./components/canvas/container";
-import { Light } from "./components/light/container";
-import { Controls } from "./components/controls/container";
+import { Canvas } from "./components/canvas/Canvas";
+import { Light } from "./components/light/Light";
+import { Controls } from "./components/controls/Controls";
 
-const canvasElement = document.getElementById("root").children[0],
+const canvasElement = document.getElementById("canvas"),
 	canvasContext = canvasElement.getContext('2d');
 	lightElement = document.getElementById("light"),
 	phraseGapInput = document.getElementById("phrase-gap-input"),

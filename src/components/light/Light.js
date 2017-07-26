@@ -1,6 +1,6 @@
 import { store } from "../../store/index";
 import { updateLightCoord } from "./actionCreators";
-import { Phrase } from "../phrase/container";
+import { Phrase } from "../phrase/Phrase";
 import { pendularEasing } from "../../helpers/index";
 import { Ticker } from "../../helpers/ticker";
 
