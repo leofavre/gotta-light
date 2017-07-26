@@ -263,7 +263,9 @@ const Phrase = (function() {
 
 const RayView = (function() {
 	const render = (context, rayCoord, translatedCoord, arcDefinition) => {
-		let [x1, y1] = rayCoord, [x2, y2] = translatedCoord, [radius, angle1, angle2] = arcDefinition;
+		let [x1, y1] = rayCoord,
+			[x2, y2] = translatedCoord,
+			[radius, angle1, angle2] = arcDefinition;
 
 		let gradient = context.createRadialGradient(x1, y1, 0, x1, y1, radius);
 		gradient.addColorStop(0, "rgba(255, 255, 255, 0.5)");
@@ -354,8 +356,6 @@ const Canvas = (function() {
 })();
 
 const Ticker = (function() {
-	console.log("once");
-
 	let tickers = {},
 		listeners = {
 			before: new Map(),
@@ -441,40 +441,38 @@ const Ticker = (function() {
 })();
 
 const Light = (function() {
-	let _handleBefore, _handleTick, _handleAfter;
+	let lastState, _handleBefore, _handleTick, _handleAfter;
 
 	const update = (parentElement, lightElement) => {
-		let lastState;
+		let state = store.getState(),
+			{ autoMove } = state.light;
 
-		return () => {
-			let state = store.getState(),
-				{ autoMove } = state.light;
-
-			if (autoMove !== lastState) {
-				if (autoMove) {
-					_stopFollowingPointer(parentElement);
-					_startAnimation(lightElement);
-				}
-				else {
-					_stopAnimation();
-					_startFollowingPointer(parentElement);
-				}
+		if (autoMove !== lastState) {
+			if (autoMove) {
+				_stopFollowingPointer(parentElement);
+				_startAnimation(lightElement);
 			}
+			else {
+				_stopAnimation();
+				_startFollowingPointer(parentElement);
+			}
+		}
 
-			lastState = autoMove;
-		};
+		lastState = autoMove;
 	};
 
 	const _startAnimation = element => {
 		let state, source, gap, canvas, x, y;
 
 		_handleBefore = () => {
-			state = store.getState(), { source, gap } = state.phrase, { canvas } = state;
+			state = store.getState(),
+			{ source, gap } = state.phrase,
+			{ width, height } = state.canvas;
 		};
 
 		_handleTick = tick => {
-			x = _calculateAxisIncrement(tick.x, canvas.width, Phrase.width(source, gap));
-			y = _calculateAxisIncrement(tick.y, canvas.height, Phrase.height(source, gap));
+			x = _calculateAxisIncrement(tick.x, width, Phrase.width(source, gap));
+			y = _calculateAxisIncrement(tick.y, height, Phrase.height(source, gap));
 		};
 
 		_handleAfter = () => {
@@ -484,20 +482,20 @@ const Light = (function() {
 		};
 
 		Ticker
-			.add("x", 45, 1, _resetOnLap)
-			.add("y", 155, 1.2, _resetOnLap)
 			.on("before", _handleBefore)
 			.on("tick", _handleTick)
-			.on("after", _handleAfter);
+			.on("after", _handleAfter)
+			.add("x", 45, 1, _resetOnLap)
+			.add("y", 155, 1, _resetOnLap);
 	};
 
 	const _stopAnimation = () => {
 		Ticker
-			.remove("x")
-			.remove("y")
 			.off("before", _handleBefore)
 			.off("tick", _handleTick)
-			.off("after", _handleAfter);
+			.off("after", _handleAfter)
+			.remove("x")
+			.remove("y");
 	};
 
 	const _calculateAxisIncrement = (value, canvasMeasure, phraseMeasure) => {
@@ -584,7 +582,7 @@ parentElement.addEventListener("click", evt =>
 	store.dispatch(toggleLightAutomaticMovement()));
 
 store.subscribe(Canvas.update(parentElement));
-store.subscribe(Light.update(parentElement, lightElement));
+store.subscribe(() => Light.update(parentElement, lightElement));
 store.subscribe(Controls.update(controlsBindings));
 
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));

@@ -7,8 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "copy": "mkdir -p ./dist/es6 && rsync -av --update -f'- */' -f'- index.js' -f'+ *' ./src/* ./dist/es6",
     "rollup": "./node_modules/.bin/rollup -f es -i ./src/index.js -o ./dist/es6/index.js",
-    "beautify": "./node_modules/.bin/js-beautify -r -f ./dist/es6/index.js",
-    "build": "npm run copy && npm run rollup && npm run beautify"
+    "build": "npm run copy && npm run rollup"
   },
   "repository": {
     "type": "git",
@@ -27,7 +26,6 @@
   },
   "homepage": "https://github.com/leofavre/gotta-light#readme",
   "devDependencies": {
-    "js-beautify": "^1.6.14",
     "rollup": "^0.45.2"
   }
 }

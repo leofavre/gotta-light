@@ -41,7 +41,7 @@ parentElement.addEventListener("click", evt =>
 	store.dispatch(toggleLightAutomaticMovement()));
 
 store.subscribe(Canvas.update(parentElement));
-store.subscribe(Light.update(parentElement, lightElement));
+store.subscribe(() => Light.update(parentElement, lightElement));
 store.subscribe(Controls.update(controlsBindings));
 
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
