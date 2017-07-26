@@ -9,7 +9,8 @@ import { Canvas } from "./components/canvas/container";
 import { Light } from "./components/light/container";
 import { Controls } from "./components/controls/container";
 
-const parentElement = document.getElementById("root"),
+const canvasElement = document.getElementById("root").children[0],
+	canvasContext = canvasElement.getContext('2d');
 	lightElement = document.getElementById("light"),
 	phraseGapInput = document.getElementById("phrase-gap-input"),
 	lightReachInput = document.getElementById("light-reach-input"),
@@ -37,11 +38,11 @@ const controlsBindings = [{
 window.addEventListener("resize", evt =>
 	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
 
-parentElement.addEventListener("click", evt =>
+canvasElement.addEventListener("click", evt =>
 	store.dispatch(toggleLightAutomaticMovement()));
 
-store.subscribe(Canvas.update(parentElement));
-store.subscribe(() => Light.update(parentElement, lightElement));
+store.subscribe(() => Canvas.update(canvasElement, canvasContext));
+store.subscribe(() => Light.update(canvasElement, lightElement));
 store.subscribe(Controls.update(controlsBindings));
 
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));

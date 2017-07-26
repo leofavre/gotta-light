@@ -320,20 +320,14 @@ const Ray = (function() {
 })();
 
 const Canvas = (function() {
-	const update = (parentElement) => {
-		parentElement.innerHTML = `<canvas></canvas>`;
-		const element = parentElement.children[0];
-		const context = element.getContext('2d');
+	const update = (element, context) => {
+		let state = store.getState(),
+			{ light, phrase, ray, canvas } = state,
+			visibleCoords = Phrase.visibleCoords(canvas, phrase.source, phrase.gap);
 
-		return () => {
-			let state = store.getState(),
-				{ light, phrase, ray, canvas } = state,
-				visibleCoords = Phrase.visibleCoords(canvas, phrase.source, phrase.gap);
-
-			_updateDimensions(element, canvas.width, canvas.height);
-			_cleanUp(context, canvas.width, canvas.height);
-			_draw(visibleCoords, context, light, ray);
-		};
+		_updateDimensions(element, canvas.width, canvas.height);
+		_cleanUp(context, canvas.width, canvas.height);
+		_draw(visibleCoords, context, light, ray);
 	};
 
 	const _updateDimensions = (element, width, height) => {
@@ -486,7 +480,7 @@ const Light = (function() {
 			.on("tick", _handleTick)
 			.on("after", _handleAfter)
 			.add("x", 45, 1, _resetOnLap)
-			.add("y", 155, 1, _resetOnLap);
+			.add("y", 155, 1.5, _resetOnLap);
 	};
 
 	const _stopAnimation = () => {
@@ -550,12 +544,13 @@ const Controls = (function() {
 	};
 })();
 
-const parentElement = document.getElementById("root");
-const lightElement = document.getElementById("light");
-const phraseGapInput = document.getElementById("phrase-gap-input");
-const lightReachInput = document.getElementById("light-reach-input");
-const rayApertureInput = document.getElementById("ray-aperture-input");
-const rayReachInput = document.getElementById("ray-reach-input");
+const canvasElement = document.getElementById("root").children[0];
+const canvasContext = canvasElement.getContext('2d');
+	lightElement = document.getElementById("light"),
+	phraseGapInput = document.getElementById("phrase-gap-input"),
+	lightReachInput = document.getElementById("light-reach-input"),
+	rayApertureInput = document.getElementById("ray-aperture-input"),
+	rayReachInput = document.getElementById("ray-reach-input");
 
 const controlsBindings = [{
 	input: phraseGapInput,
@@ -578,11 +573,11 @@ const controlsBindings = [{
 window.addEventListener("resize", evt =>
 	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
 
-parentElement.addEventListener("click", evt =>
+canvasElement.addEventListener("click", evt =>
 	store.dispatch(toggleLightAutomaticMovement()));
 
-store.subscribe(Canvas.update(parentElement));
-store.subscribe(() => Light.update(parentElement, lightElement));
+store.subscribe(() => Canvas.update(canvasElement, canvasContext));
+store.subscribe(() => Light.update(canvasElement, lightElement));
 store.subscribe(Controls.update(controlsBindings));
 
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
