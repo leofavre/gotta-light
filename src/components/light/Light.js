@@ -7,8 +7,8 @@ import { Ticker } from "../../helpers/ticker";
 export const Light = (function() {
 	let lastState, _handleBefore, _handleTick, _handleAfter;
 
-	const render = (canvasElement, lightElement) => {
-		_beforeFirstRender(canvasElement);
+	const render = element => {
+		_beforeFirstRender(element);
 
 		return () => {
 			let state = store.getState(),
@@ -16,12 +16,12 @@ export const Light = (function() {
 
 			if (autoMove !== lastState) {
 				if (autoMove) {
-					_stopFollowingPointer(canvasElement);
-					_startAnimation(lightElement);
+					_stopFollowingPointer(element);
+					_startAnimation();
 				}
 				else {
 					_stopAnimation();
-					_startFollowingPointer(canvasElement);
+					_startFollowingPointer(element);
 				}
 			}
 
@@ -29,7 +29,7 @@ export const Light = (function() {
 		};
 	};
 
-	const _startAnimation = element => {
+	const _startAnimation = () => {
 		let state, source, gap, canvas, x, y;
 
 		_handleBefore = () => {
@@ -42,8 +42,6 @@ export const Light = (function() {
 		};
 
 		_handleAfter = () => {
-			// element.style.left = `${x}px`;
-			// element.style.top = `${y}px`;
 			store.dispatch(updateLightCoord(x, y));
 		};
 
@@ -83,8 +81,10 @@ export const Light = (function() {
 		store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
 
 	const _beforeFirstRender = element =>
-		element.addEventListener("click", evt =>
-			store.dispatch(toggleLightAutomaticMovement()));
+		element.addEventListener("click", evt => {
+			store.dispatch(toggleLightAutomaticMovement());
+			store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
+		});
 
 	return {
 		render

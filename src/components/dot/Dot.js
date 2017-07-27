@@ -3,10 +3,12 @@ import { DotView } from "./DotView";
 
 export const Dot = (function() {
 	const render = (element) => {
-		let state = store.getState(),
-			[x, y] = state.light.coord;
+		return () => {
+			let state = store.getState(),
+				[x, y] = state.light.coord;
 
-		DotView.render(element, x, y);
+			DotView.render(element, x, y);
+		};
 	};
 
 	return {
