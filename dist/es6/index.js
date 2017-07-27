@@ -216,51 +216,6 @@ const updateRayReach = reach => ({
 	reach
 });
 
-const Phrase = (function() {
-	const visibleCoords = (canvas, source, gap) => {
-		let [xStart, yStart] = _calculateInitialCoord(canvas, source, gap);
-
-		return source
-			.map((line, lineIndex) =>
-				_calculateVisibleCoordsInLine(line, lineIndex, xStart, yStart, gap))
-			.reduce(toFlatten);
-	};
-
-	const width = (source, gap) => Math.round(1 + gap * source[0].length);
-
-	const height = (source, gap) => Math.round(1 + gap * source.length);
-
-	const _calculateInitialCoord = (canvas, source, gap) => {
-		let phraseWidth = width(source, gap),
-			phraseHeight = height(source, gap);
-
-		return [
-			Math.round((canvas.width - phraseWidth) / 2),
-			Math.round((canvas.height - phraseHeight) / 2)
-		];
-	};
-
-	const _calculateVisibleCoordsInLine = (line, lineIndex, xStart, yStart, gap) => {
-		return line
-			.map((dot, dotIndex) =>
-				!!dot ? _calculateCoord(xStart, yStart, dotIndex, lineIndex, gap) : null)
-			.filter(rayCoord => rayCoord != null);
-	};
-
-	const _calculateCoord = (xStart, yStart, xIndex, yIndex, gap) => {
-		return [
-			Math.round(xIndex * gap + xStart),
-			Math.round(yIndex * gap + yStart)
-		];
-	};
-
-	return {
-		visibleCoords,
-		width,
-		height
-	};
-})();
-
 const RayView = (function() {
 	const render = (context, rayCoord, translatedCoord, arcDefinition) => {
 		let [x1, y1] = rayCoord,
@@ -286,7 +241,15 @@ const RayView = (function() {
 })();
 
 const Ray = (function() {
-	const render = (context, lightReach, lightCoord, rayReach, rayCoord, rayAperture) => {
+	const render = (context, rayCoord) => {
+		let state = store.getState(),
+			{ light, ray } = state;
+
+		let lightReach = light.reach,
+			lightCoord = light.coord,
+			rayReach = ray.reach,
+			rayAperture = ray.aperture;
+
 		let arcDefinition = _calculateArc(lightReach, lightCoord, rayReach, rayCoord, rayAperture),
 			[radius, angle] = arcDefinition,
 			translatedCoord = translateAndRotateCoord(rayCoord, radius, angle);
@@ -319,33 +282,101 @@ const Ray = (function() {
 	};
 })();
 
-const Canvas = (function() {
-	const update = (element, context) => {
-		let state = store.getState(),
-			{ light, phrase, ray, canvas } = state,
-			visibleCoords = Phrase.visibleCoords(canvas, phrase.source, phrase.gap);
-
-		_updateDimensions(element, canvas.width, canvas.height);
-		_cleanUp(context, canvas.width, canvas.height);
-		_draw(visibleCoords, context, light, ray);
-	};
-
-	const _updateDimensions = (element, width, height) => {
-		element.setAttribute("width", width);
-		element.setAttribute("height", height);
-	};
-
-	const _cleanUp = (context, width, height) => {
-		context.clearRect(0, 0, width, height);
-	};
-
-	const _draw = (visibleCoords, context, light, ray) => {
-		visibleCoords.forEach(rayCoord =>
-			Ray.render(context, light.reach, light.coord, ray.reach, rayCoord, ray.aperture));
+const PhraseView = (function() {
+	const render = (context, visibleCoords) => {
+		visibleCoords.forEach(rayCoord => Ray.render(context, rayCoord));
 	};
 
 	return {
-		update
+		render
+	};
+})();
+
+const Phrase = (function() {
+	const render = (context) => {
+		let state = store.getState(),
+			{ canvas, phrase } = state;
+
+		let visibleCoords = _calculateVisibleCoords(canvas, phrase.source, phrase.gap);
+
+		PhraseView.render(context, visibleCoords);
+	};
+
+	const width = (source, gap) => Math.round(1 + gap * source[0].length);
+
+	const height = (source, gap) => Math.round(1 + gap * source.length);
+
+	const _calculateVisibleCoords = (canvas, source, gap) => {
+		let [xStart, yStart] = _calculateInitialCoord(canvas, source, gap);
+
+		return source
+			.map((line, lineIndex) =>
+				_calculateVisibleCoordsByLine(line, lineIndex, xStart, yStart, gap))
+			.reduce(toFlatten);
+	};
+
+	const _calculateInitialCoord = (canvas, source, gap) => {
+		let phraseWidth = width(source, gap),
+			phraseHeight = height(source, gap);
+
+		return [
+			Math.round((canvas.width - phraseWidth) / 2),
+			Math.round((canvas.height - phraseHeight) / 2)
+		];
+	};
+
+	const _calculateVisibleCoordsByLine = (line, lineIndex, xStart, yStart, gap) => {
+		return line
+			.map((dot, dotIndex) =>
+				!!dot ? _calculateCoord(xStart, yStart, dotIndex, lineIndex, gap) : null)
+			.filter(coord => coord != null);
+	};
+
+	const _calculateCoord = (xStart, yStart, xIndex, yIndex, gap) => {
+		return [
+			Math.round(xIndex * gap + xStart),
+			Math.round(yIndex * gap + yStart)
+		];
+	};
+
+	return {
+		render,
+		width,
+		height
+	};
+})();
+
+const CanvasView = (function() {
+	const render = (element, context, canvasWidth, canvasHeight) => {
+		_updateDimensions(element, canvasWidth, canvasHeight);
+		_cleanUp(context, canvasWidth, canvasHeight);
+		Phrase.render(context);
+	};
+
+	const _updateDimensions = (element, canvasWidth, canvasHeight) => {
+		element.setAttribute("width", canvasWidth);
+		element.setAttribute("height", canvasHeight);
+	};
+
+	const _cleanUp = (context, canvasWidth, canvasHeight) => {
+		context.clearRect(0, 0, canvasWidth, canvasHeight);
+	};
+
+	return {
+		render
+	};
+})();
+
+const Canvas = (function() {
+	const render = (element, context) => {
+		let state = store.getState(),
+			{ width, height } = state.canvas;
+
+		CanvasView.render(element, context, width, height);
+	};
+
+	return {
+		render
 	};
 })();
 
@@ -576,7 +607,7 @@ window.addEventListener("resize", evt =>
 canvasElement.addEventListener("click", evt =>
 	store.dispatch(toggleLightAutomaticMovement()));
 
-store.subscribe(() => Canvas.update(canvasElement, canvasContext));
+store.subscribe(() => Canvas.render(canvasElement, canvasContext));
 store.subscribe(() => Light.update(canvasElement, lightElement));
 store.subscribe(Controls.update(controlsBindings));
 

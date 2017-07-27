@@ -1,18 +1,29 @@
+import { store } from "../../store/index";
 import { toFlatten } from "../../helpers/index";
+import { PhraseView } from "../phrase/PhraseView";
 
 export const Phrase = (function() {
-	const visibleCoords = (canvas, source, gap) => {
-		let [xStart, yStart] = _calculateInitialCoord(canvas, source, gap);
+	const render = (context) => {
+		let state = store.getState(),
+			{ canvas, phrase } = state;
 
-		return source
-			.map((line, lineIndex) =>
-				_calculateVisibleCoordsInLine(line, lineIndex, xStart, yStart, gap))
-			.reduce(toFlatten);
+		let visibleCoords = _calculateVisibleCoords(canvas, phrase.source, phrase.gap);
+
+		PhraseView.render(context, visibleCoords);
 	};
 
 	const width = (source, gap) => Math.round(1 + gap * source[0].length);
 
 	const height = (source, gap) => Math.round(1 + gap * source.length);
+
+	const _calculateVisibleCoords = (canvas, source, gap) => {
+		let [xStart, yStart] = _calculateInitialCoord(canvas, source, gap);
+
+		return source
+			.map((line, lineIndex) =>
+				_calculateVisibleCoordsByLine(line, lineIndex, xStart, yStart, gap))
+			.reduce(toFlatten);
+	};
 
 	const _calculateInitialCoord = (canvas, source, gap) => {
 		let phraseWidth = width(source, gap),
@@ -24,11 +35,11 @@ export const Phrase = (function() {
 		];
 	};
 
-	const _calculateVisibleCoordsInLine = (line, lineIndex, xStart, yStart, gap) => {
+	const _calculateVisibleCoordsByLine = (line, lineIndex, xStart, yStart, gap) => {
 		return line
 			.map((dot, dotIndex) =>
 				!!dot ? _calculateCoord(xStart, yStart, dotIndex, lineIndex, gap) : null)
-			.filter(rayCoord => rayCoord != null);
+			.filter(coord => coord != null);
 	};
 
 	const _calculateCoord = (xStart, yStart, xIndex, yIndex, gap) => {
@@ -39,7 +50,7 @@ export const Phrase = (function() {
 	};
 
 	return {
-		visibleCoords,
+		render,
 		width,
 		height
 	};

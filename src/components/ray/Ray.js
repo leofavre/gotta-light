@@ -1,8 +1,17 @@
+import { store } from "../../store/index";
 import { calculateAngleBetweenLineAndXAxis, calculateDistanceBetweenCoords, degToRad, translateAndRotateCoord } from "../../helpers/index";
 import { RayView } from "./RayView";
 
 export const Ray = (function() {
-	const render = (context, lightReach, lightCoord, rayReach, rayCoord, rayAperture) => {
+	const render = (context, rayCoord) => {
+		let state = store.getState(),
+			{ light, ray } = state;
+
+		let lightReach = light.reach,
+			lightCoord = light.coord,
+			rayReach = ray.reach,
+			rayAperture = ray.aperture;
+
 		let arcDefinition = _calculateArc(lightReach, lightCoord, rayReach, rayCoord, rayAperture),
 			[radius, angle] = arcDefinition,
 			translatedCoord = translateAndRotateCoord(rayCoord, radius, angle);

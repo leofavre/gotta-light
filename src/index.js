@@ -41,7 +41,7 @@ window.addEventListener("resize", evt =>
 canvasElement.addEventListener("click", evt =>
 	store.dispatch(toggleLightAutomaticMovement()));
 
-store.subscribe(() => Canvas.update(canvasElement, canvasContext));
+store.subscribe(() => Canvas.render(canvasElement, canvasContext));
 store.subscribe(() => Light.update(canvasElement, lightElement));
 store.subscribe(Controls.update(controlsBindings));
 
