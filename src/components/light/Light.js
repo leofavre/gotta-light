@@ -1,5 +1,5 @@
 import { store } from "../../store/index";
-import { updateLightCoord } from "./actionCreators";
+import { updateLightCoord, toggleLightAutomaticMovement } from "./actionCreators";
 import { Phrase } from "../phrase/Phrase";
 import { pendularEasing } from "../../helpers/index";
 import { Ticker } from "../../helpers/ticker";
@@ -7,31 +7,33 @@ import { Ticker } from "../../helpers/ticker";
 export const Light = (function() {
 	let lastState, _handleBefore, _handleTick, _handleAfter;
 
-	const update = (parentElement, lightElement) => {
-		let state = store.getState(),
-			{ autoMove } = state.light;
+	const render = (canvasElement, lightElement) => {
+		_beforeFirstRender(canvasElement);
 
-		if (autoMove !== lastState) {
-			if (autoMove) {
-				_stopFollowingPointer(parentElement);
-				_startAnimation(lightElement);
-			}
-			else {
-				_stopAnimation();
-				_startFollowingPointer(parentElement);
-			}
-		}
+		return () => {
+			let state = store.getState(),
+				{ autoMove } = state.light;
 
-		lastState = autoMove;
+			if (autoMove !== lastState) {
+				if (autoMove) {
+					_stopFollowingPointer(canvasElement);
+					_startAnimation(lightElement);
+				}
+				else {
+					_stopAnimation();
+					_startFollowingPointer(canvasElement);
+				}
+			}
+
+			lastState = autoMove;
+		};
 	};
 
 	const _startAnimation = element => {
 		let state, source, gap, canvas, x, y;
 
 		_handleBefore = () => {
-			state = store.getState(),
-			{ source, gap } = state.phrase,
-			{ width, height } = state.canvas;
+			state = store.getState(), { source, gap } = state.phrase, { width, height } = state.canvas;
 		};
 
 		_handleTick = tick => {
@@ -80,7 +82,11 @@ export const Light = (function() {
 	const _handleMousemove = evt =>
 		store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
 
+	const _beforeFirstRender = element =>
+		element.addEventListener("click", evt =>
+			store.dispatch(toggleLightAutomaticMovement()));
+
 	return {
-		update
+		render
 	};
 })();

@@ -181,12 +181,6 @@ const app = Redux.combineReducers({
 
 const store = Redux.createStore(app, initialState);
 
-const resizeCanvas = (width, height) => ({
-	type: RESIZE_CANVAS,
-	width,
-	height
-});
-
 const toggleLightAutomaticMovement = () => ({
 	type: TOGGLE_LIGHT_AUTOMATIC_MOVEMENT
 });
@@ -214,6 +208,12 @@ const updateRayAperture = aperture => ({
 const updateRayReach = reach => ({
 	type: UPDATE_RAY_REACH,
 	reach
+});
+
+const resizeCanvas = (width, height) => ({
+	type: RESIZE_CANVAS,
+	width,
+	height
 });
 
 const RayView = (function() {
@@ -368,11 +368,19 @@ const CanvasView = (function() {
 
 const Canvas = (function() {
 	const render = (element, context) => {
-		let state = store.getState(),
-			{ width, height } = state.canvas;
+		_beforeFirstRender();
 
-		CanvasView.render(element, context, width, height);
+		return () => {
+			let state = store.getState(),
+				{ width, height } = state.canvas;
+
+			CanvasView.render(element, context, width, height);
+		};
 	};
+
+	const _beforeFirstRender = () =>
+		window.addEventListener("resize", evt =>
+			store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
 
 	return {
 		render
@@ -414,12 +422,12 @@ const Ticker = (function() {
 
 	const _start = () => {
 		window.requestAnimationFrame(() => {
-			_doTickerCycle();
+			_tick();
 			_start();
 		});
 	};
 
-	const _doTickerCycle = () => {
+	const _tick = () => {
 		listeners.before.forEach(callback => callback());
 		listeners.tick.forEach(callback => callback(_getValues()));
 		_incrementAndUpdateTickers();
@@ -467,31 +475,33 @@ const Ticker = (function() {
 const Light = (function() {
 	let lastState, _handleBefore, _handleTick, _handleAfter;
 
-	const update = (parentElement, lightElement) => {
-		let state = store.getState(),
-			{ autoMove } = state.light;
+	const render = (canvasElement, lightElement) => {
+		_beforeFirstRender(canvasElement);
 
-		if (autoMove !== lastState) {
-			if (autoMove) {
-				_stopFollowingPointer(parentElement);
-				_startAnimation(lightElement);
-			}
-			else {
-				_stopAnimation();
-				_startFollowingPointer(parentElement);
-			}
-		}
+		return () => {
+			let state = store.getState(),
+				{ autoMove } = state.light;
 
-		lastState = autoMove;
+			if (autoMove !== lastState) {
+				if (autoMove) {
+					_stopFollowingPointer(canvasElement);
+					_startAnimation(lightElement);
+				}
+				else {
+					_stopAnimation();
+					_startFollowingPointer(canvasElement);
+				}
+			}
+
+			lastState = autoMove;
+		};
 	};
 
 	const _startAnimation = element => {
 		let state, source, gap, canvas, x, y;
 
 		_handleBefore = () => {
-			state = store.getState(),
-			{ source, gap } = state.phrase,
-			{ width, height } = state.canvas;
+			state = store.getState(), { source, gap } = state.phrase, { width, height } = state.canvas;
 		};
 
 		_handleTick = tick => {
@@ -540,8 +550,12 @@ const Light = (function() {
 	const _handleMousemove = evt =>
 		store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
 
+	const _beforeFirstRender = element =>
+		element.addEventListener("click", evt =>
+			store.dispatch(toggleLightAutomaticMovement()));
+
 	return {
-		update
+		render
 	};
 })();
 
@@ -575,7 +589,7 @@ const Controls = (function() {
 })();
 
 const canvasElement = document.getElementById("canvas");
-const canvasContext = canvasElement.getContext('2d');
+const canvasContext = canvasElement.getContext("2d");
 	lightElement = document.getElementById("light"),
 	phraseGapInput = document.getElementById("phrase-gap-input"),
 	lightReachInput = document.getElementById("light-reach-input"),
@@ -600,14 +614,8 @@ const controlsBindings = [{
 	stateProp: "ray.reach"
 }];
 
-window.addEventListener("resize", evt =>
-	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
-
-canvasElement.addEventListener("click", evt =>
-	store.dispatch(toggleLightAutomaticMovement()));
-
-store.subscribe(() => Canvas.render(canvasElement, canvasContext));
-store.subscribe(() => Light.update(canvasElement, lightElement));
+store.subscribe(Canvas.render(canvasElement, canvasContext));
+store.subscribe(Light.render(canvasElement, lightElement));
 store.subscribe(Controls.update(controlsBindings));
 
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));

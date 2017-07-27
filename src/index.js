@@ -1,16 +1,17 @@
 import "./data/banner.txt";
 
 import { store } from "./store/index";
-import { resizeCanvas } from "./components/canvas/actionCreators";
-import { updateLightReach, toggleLightAutomaticMovement } from "./components/light/actionCreators";
+import { updateLightReach } from "./components/light/actionCreators";
 import { updatePhraseGap } from "./components/phrase/actionCreators";
 import { updateRayAperture, updateRayReach } from "./components/ray/actionCreators";
 import { Canvas } from "./components/canvas/Canvas";
 import { Light } from "./components/light/Light";
 import { Controls } from "./components/controls/Controls";
 
+import { resizeCanvas } from "./components/canvas/actionCreators";
+
 const canvasElement = document.getElementById("canvas"),
-	canvasContext = canvasElement.getContext('2d');
+	canvasContext = canvasElement.getContext("2d");
 	lightElement = document.getElementById("light"),
 	phraseGapInput = document.getElementById("phrase-gap-input"),
 	lightReachInput = document.getElementById("light-reach-input"),
@@ -35,14 +36,8 @@ const controlsBindings = [{
 	stateProp: "ray.reach"
 }];
 
-window.addEventListener("resize", evt =>
-	store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight)));
-
-canvasElement.addEventListener("click", evt =>
-	store.dispatch(toggleLightAutomaticMovement()));
-
-store.subscribe(() => Canvas.render(canvasElement, canvasContext));
-store.subscribe(() => Light.update(canvasElement, lightElement));
+store.subscribe(Canvas.render(canvasElement, canvasContext));
+store.subscribe(Light.render(canvasElement, lightElement));
 store.subscribe(Controls.update(controlsBindings));
 
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
