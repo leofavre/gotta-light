@@ -295,16 +295,15 @@ const PhraseView = (function() {
 const Phrase = (function() {
 	const render = (context) => {
 		let state = store.getState(),
-			{ canvas, phrase } = state;
-
-		let visibleCoords = _calculateVisibleCoords(canvas, phrase.source, phrase.gap);
+			{ canvas, phrase } = state,
+			visibleCoords = _calculateVisibleCoords(canvas, phrase.source, phrase.gap);
 
 		PhraseView.render(context, visibleCoords);
 	};
 
-	const width = (source, gap) => Math.round(1 + gap * source[0].length);
+	const getWidth = (source, gap) => Math.round(1 + gap * source[0].length);
 
-	const height = (source, gap) => Math.round(1 + gap * source.length);
+	const getHeight = (source, gap) => Math.round(1 + gap * source.length);
 
 	const _calculateVisibleCoords = (canvas, source, gap) => {
 		let [xStart, yStart] = _calculateInitialCoord(canvas, source, gap);
@@ -316,8 +315,8 @@ const Phrase = (function() {
 	};
 
 	const _calculateInitialCoord = (canvas, source, gap) => {
-		let phraseWidth = width(source, gap),
-			phraseHeight = height(source, gap);
+		let phraseWidth = getWidth(source, gap),
+			phraseHeight = getHeight(source, gap);
 
 		return [
 			Math.round((canvas.width - phraseWidth) / 2),
@@ -341,8 +340,8 @@ const Phrase = (function() {
 
 	return {
 		render,
-		width,
-		height
+		getWidth,
+		getHeight
 	};
 })();
 
@@ -496,8 +495,8 @@ const Light = (function() {
 		};
 
 		_handleTick = tick => {
-			x = _calculateAxisIncrement(tick.x, width, Phrase.width(source, gap));
-			y = _calculateAxisIncrement(tick.y, height, Phrase.height(source, gap));
+			x = _calculateAxisIncrement(tick.x, width, Phrase.getWidth(source, gap));
+			y = _calculateAxisIncrement(tick.y, height, Phrase.getHeight(source, gap));
 		};
 
 		_handleAfter = () => {

@@ -33,12 +33,12 @@ export const Ticker = (function() {
 
 	const _start = () => {
 		window.requestAnimationFrame(() => {
-			_doTickerCycle();
+			_tick();
 			_start();
 		});
 	};
 
-	const _doTickerCycle = () => {
+	const _tick = () => {
 		listeners.before.forEach(callback => callback());
 		listeners.tick.forEach(callback => callback(_getValues()));
 		_incrementAndUpdateTickers();

@@ -35,8 +35,8 @@ export const Light = (function() {
 		};
 
 		_handleTick = tick => {
-			x = _calculateAxisIncrement(tick.x, width, Phrase.width(source, gap));
-			y = _calculateAxisIncrement(tick.y, height, Phrase.height(source, gap));
+			x = _calculateAxisIncrement(tick.x, width, Phrase.getWidth(source, gap));
+			y = _calculateAxisIncrement(tick.y, height, Phrase.getHeight(source, gap));
 		};
 
 		_handleAfter = () => {
