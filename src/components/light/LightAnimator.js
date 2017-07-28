@@ -7,8 +7,8 @@ import { Ticker } from "../../helpers/ticker";
 export const LightAnimator = (function() {
 	let lastState, _handleBefore, _handleTick, _handleAfter;
 
-	const render = element => {
-		_beforeFirstRender(element);
+	const update = element => {
+		_beforeFirstUpdate(element);
 
 		return () => {
 			let state = store.getState(),
@@ -28,6 +28,12 @@ export const LightAnimator = (function() {
 			lastState = autoMove;
 		};
 	};
+
+	const _beforeFirstUpdate = element =>
+		element.addEventListener("click", evt => {
+			store.dispatch(toggleLightAutomaticMovement());
+			store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
+		});
 
 	const _startAnimation = () => {
 		let state, source, gap, canvas, x, y;
@@ -50,7 +56,7 @@ export const LightAnimator = (function() {
 			.on("tick", _handleTick)
 			.on("after", _handleAfter)
 			.add("x", 45, 1, _resetOnLap)
-			.add("y", 155, 1.6015625, _resetOnLap);
+			.add("y", 155, 1, _resetOnLap);
 	};
 
 	const _stopAnimation = () => {
@@ -80,13 +86,7 @@ export const LightAnimator = (function() {
 	const _handleMousemove = evt =>
 		store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
 
-	const _beforeFirstRender = element =>
-		element.addEventListener("click", evt => {
-			store.dispatch(toggleLightAutomaticMovement());
-			store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
-		});
-
 	return {
-		render
+		update
 	};
 })();

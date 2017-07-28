@@ -475,8 +475,8 @@ const Ticker = (function() {
 const LightAnimator = (function() {
 	let lastState, _handleBefore, _handleTick, _handleAfter;
 
-	const render = element => {
-		_beforeFirstRender(element);
+	const update = element => {
+		_beforeFirstUpdate(element);
 
 		return () => {
 			let state = store.getState(),
@@ -496,6 +496,12 @@ const LightAnimator = (function() {
 			lastState = autoMove;
 		};
 	};
+
+	const _beforeFirstUpdate = element =>
+		element.addEventListener("click", evt => {
+			store.dispatch(toggleLightAutomaticMovement());
+			store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
+		});
 
 	const _startAnimation = () => {
 		let state, source, gap, canvas, x, y;
@@ -548,14 +554,8 @@ const LightAnimator = (function() {
 	const _handleMousemove = evt =>
 		store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
 
-	const _beforeFirstRender = element =>
-		element.addEventListener("click", evt => {
-			store.dispatch(toggleLightAutomaticMovement());
-			store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
-		});
-
 	return {
-		render
+		update
 	};
 })();
 
@@ -563,7 +563,7 @@ const LightSourceView = (function() {
 	const render = (context, x, y) => {
 		context.beginPath();
 		context.arc(x, y, 5, 0, 2 * Math.PI, false);
-		context.fillStyle = "#fff";
+		context.fillStyle = "transparent";
 		context.fill();
 	};
 
@@ -587,63 +587,52 @@ const LightSource = (function() {
 	};
 })();
 
-const Controls = (function() {
-	const update = (bindings) => {
-		bindings.forEach(binding =>
-			_controlViaInput(binding.input, binding.action));
-
-		return () => {
-			let state = store.getState();
-
-			bindings.forEach(binding =>
-				_updateInput(binding.input, simpleAt(state, binding.stateProp)));
-		};
-	};
-
-	const _updateInput = (inputEl, stateValue) => {
-		if (inputEl.value !== stateValue) {
-			inputEl.value = stateValue;
+const SliderView = (function() {
+	const render = (element, value) => {
+		if (element.value !== value) {
+			element.value = value;
 		}
 	};
 
-	const _controlViaInput = (inputEl, callback) => {
-		inputEl.addEventListener("input", evt =>
-			store.dispatch(callback(evt.target.value)));
+	return {
+		render
+	};
+})();
+
+const Slider = (function() {
+	const bind = (element, statePath, action) => {
+		_beforeFirstBind(element, action);
+
+		return () => {
+			let state = store.getState();
+			SliderView.render(element, simpleAt(state, statePath));
+		};
 	};
 
+	const _beforeFirstBind = (element, action) =>
+		element.addEventListener("input", evt =>
+			store.dispatch(action(evt.target.value)));
+
 	return {
-		update
+		bind
 	};
 })();
 
 const canvasElement = document.getElementById("canvas");
 const canvasContext = canvasElement.getContext("2d");
-	phraseGapInput = document.getElementById("phrase-gap-input"),
-	lightReachInput = document.getElementById("light-reach-input"),
-	rayApertureInput = document.getElementById("ray-aperture-input"),
-	rayReachInput = document.getElementById("ray-reach-input");
-
-const controlsBindings = [{
-	input: phraseGapInput,
-	action: updatePhraseGap,
-	stateProp: "phrase.gap"
-}, {
-	input: lightReachInput,
-	action: updateLightReach,
-	stateProp: "light.reach"
-}, {
-	input: rayApertureInput,
-	action: updateRayAperture,
-	stateProp: "ray.aperture"
-}, {
-	input: rayReachInput,
-	action: updateRayReach,
-	stateProp: "ray.reach"
-}];
 
 store.subscribe(Canvas.render(canvasElement, canvasContext));
-store.subscribe(LightAnimator.render(canvasElement));
+store.subscribe(LightAnimator.update(canvasElement));
 store.subscribe(LightSource.render(canvasContext));
-store.subscribe(Controls.update(controlsBindings));
+
+const phraseGapInput = document.getElementById("phrase-gap-input");
+const lightReachInput = document.getElementById("light-reach-input");
+const rayApertureInput = document.getElementById("ray-aperture-input");
+const rayReachInput = document.getElementById("ray-reach-input");
+
+store.subscribe(Slider.bind(phraseGapInput, "phrase.gap", updatePhraseGap));
+store.subscribe(Slider.bind(lightReachInput, "light.reach", updateLightReach));
+store.subscribe(Slider.bind(rayApertureInput, "ray.aperture", updateRayAperture));
+store.subscribe(Slider.bind(rayReachInput, "ray.reach", updateRayReach));
 
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));

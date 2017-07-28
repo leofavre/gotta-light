@@ -7,38 +7,25 @@ import { updateRayAperture, updateRayReach } from "./components/ray/actionCreato
 import { Canvas } from "./components/canvas/Canvas";
 import { LightAnimator } from "./components/light/LightAnimator";
 import { LightSource } from "./components/light/LightSource";
-import { Controls } from "./components/controls/Controls";
+import { Slider } from "./components/slider/Slider";
 
 import { resizeCanvas } from "./components/canvas/actionCreators";
 
 const canvasElement = document.getElementById("canvas"),
-	canvasContext = canvasElement.getContext("2d"),
-	phraseGapInput = document.getElementById("phrase-gap-input"),
+	canvasContext = canvasElement.getContext("2d");
+
+store.subscribe(Canvas.render(canvasElement, canvasContext));
+store.subscribe(LightAnimator.update(canvasElement));
+store.subscribe(LightSource.render(canvasContext));
+
+const phraseGapInput = document.getElementById("phrase-gap-input"),
 	lightReachInput = document.getElementById("light-reach-input"),
 	rayApertureInput = document.getElementById("ray-aperture-input"),
 	rayReachInput = document.getElementById("ray-reach-input");
 
-const controlsBindings = [{
-	input: phraseGapInput,
-	action: updatePhraseGap,
-	stateProp: "phrase.gap"
-}, {
-	input: lightReachInput,
-	action: updateLightReach,
-	stateProp: "light.reach"
-}, {
-	input: rayApertureInput,
-	action: updateRayAperture,
-	stateProp: "ray.aperture"
-}, {
-	input: rayReachInput,
-	action: updateRayReach,
-	stateProp: "ray.reach"
-}];
-
-store.subscribe(Canvas.render(canvasElement, canvasContext));
-store.subscribe(LightAnimator.render(canvasElement));
-store.subscribe(LightSource.render(canvasContext));
-store.subscribe(Controls.update(controlsBindings));
+store.subscribe(Slider.bind(phraseGapInput, "phrase.gap", updatePhraseGap));
+store.subscribe(Slider.bind(lightReachInput, "light.reach", updateLightReach));
+store.subscribe(Slider.bind(rayApertureInput, "ray.aperture", updateRayAperture));
+store.subscribe(Slider.bind(rayReachInput, "ray.reach", updateRayReach));
 
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
