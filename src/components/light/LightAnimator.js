@@ -45,8 +45,8 @@ export const LightAnimator = (function() {
 
 	const _updateAnimationTrajectory = (xIncrement, yIncrement) => {
 		Ticker
-			.update("x", "increment", xIncrement)
-			.update("y", "increment", yIncrement);
+			.updateIncrement("x", xIncrement)
+			.updateIncrement("y", yIncrement);
 	};
 
 	const _startAnimation = () => {

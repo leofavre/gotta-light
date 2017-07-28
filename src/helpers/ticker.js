@@ -12,8 +12,8 @@ export const Ticker = (function() {
 		return Ticker;
 	};
 
-	const update = (id, prop, value) => {
-		_updateTickerProp(id, prop, value);
+	const updateIncrement = (id, value) => {
+		_updateTickerProp(id, "increment", value);
 		return Ticker;
 	};
 
@@ -57,11 +57,12 @@ export const Ticker = (function() {
 	};
 
 	const _incrementAndUpdateTickers = () => {
-		Object.keys(tickers).forEach(id => _incrementAndUpdateTicker(id, tickers[id]));
+		Object.keys(tickers).forEach(id =>
+			_incrementAndUpdateTicker(id, tickers[id]));
 	};
 
 	const _incrementAndUpdateTicker = (id, ticker) => {
-		let newValue = _increment(ticker),
+		let newValue = _incrementValue(ticker),
 			{ start, increment, reset } = ticker;
 
 		_updateTicker(id, start, increment, reset, newValue);
@@ -80,7 +81,7 @@ export const Ticker = (function() {
 		tickers[id][prop] = value;
 	};
 
-	const _increment = ticker => {
+	const _incrementValue = ticker => {
 		let { increment, reset, value } = ticker;
 		value = value + increment;
 		value = reset(value);
@@ -91,7 +92,7 @@ export const Ticker = (function() {
 
 	return {
 		add,
-		update,
+		updateIncrement,
 		remove,
 		on,
 		off
