@@ -12,7 +12,7 @@ import { Controls } from "./components/controls/Controls";
 import { resizeCanvas } from "./components/canvas/actionCreators";
 
 const canvasElement = document.getElementById("canvas"),
-	canvasContext = canvasElement.getContext("2d");
+	canvasContext = canvasElement.getContext("2d"),
 	phraseGapInput = document.getElementById("phrase-gap-input"),
 	lightReachInput = document.getElementById("light-reach-input"),
 	rayApertureInput = document.getElementById("ray-aperture-input"),
