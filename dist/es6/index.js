@@ -687,10 +687,7 @@ const Control = (function() {
 
 	const _beforeFirstBind = (input, action) => {
 		if (input.type === "range") {
-			console.log(input, action);
-
 			input.addEventListener("input", evt => {
-				console.log(parseFloat(evt.target.value), typeof evt.target.value);
 				store.dispatch(action(parseFloat(evt.target.value)));
 			});
 		}
