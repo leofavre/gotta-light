@@ -1,0 +1,1 @@
+export const RESIZE_CANVAS = "RESIZE_CANVAS";

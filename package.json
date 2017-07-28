@@ -1,14 +1,13 @@
 {
   "name": "gotta-light",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Exercising HTML5 Canvas and the Redux architecture while porting an old Flash project to Javascript.",
   "main": "./src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "copy": "mkdir -p ./dist/es6 && rsync -av --update -f'- */' -f'- index.js' -f'+ *' ./src/* ./dist/es6",
     "rollup": "./node_modules/.bin/rollup -f es -i ./src/index.js -o ./dist/es6/index.js",
-    "beautify": "./node_modules/.bin/js-beautify -r -f ./dist/es6/index.js",
-    "build": "npm run copy && npm run rollup && npm run beautify"
+    "build": "npm run copy && npm run rollup"
   },
   "repository": {
     "type": "git",
@@ -27,7 +26,6 @@
   },
   "homepage": "https://github.com/leofavre/gotta-light#readme",
   "devDependencies": {
-    "js-beautify": "^1.6.14",
     "rollup": "^0.45.2"
   }
 }
