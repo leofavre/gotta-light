@@ -39,11 +39,14 @@ const initialState = {
 	},
 	light: {
 		autoMove: true,
+		showOrigin: false,
 		coord: [
 			Math.round(window.innerWidth / 3),
 			Math.round(window.innerHeight / 3)
 		],
 		reach: 5,
+		xIncrement: 1,
+		yIncrement: 1
 	},
 	phrase: {
 		gap: 9,
@@ -121,19 +124,31 @@ const canvas = (state = initialState.canvas, action) => {
 };
 
 const TOGGLE_LIGHT_AUTOMATIC_MOVEMENT = "TOGGLE_LIGHT_AUTOMATIC_MOVEMENT";
+const TOGGLE_LIGHT_ORIGIN = "TOGGLE_LIGHT_ORIGIN";
 const UPDATE_LIGHT_COORD = "UPDATE_LIGHT_COORD";
 const UPDATE_LIGHT_REACH = "UPDATE_LIGHT_REACH";
+const UPDATE_LIGHT_X_INCREMENT = "UPDATE_LIGHT_X_INCREMENT";
+const UPDATE_LIGHT_Y_INCREMENT = "UPDATE_LIGHT_Y_INCREMENT";
 
 const light = (state = initialState.light, action) => {
 	switch (action.type) {
 		case TOGGLE_LIGHT_AUTOMATIC_MOVEMENT:
 			return updateProps(state, { autoMove: !state.autoMove });
 
+		case TOGGLE_LIGHT_ORIGIN:
+			return updatePropsToAction(state, action, "showOrigin");
+
 		case UPDATE_LIGHT_COORD:
 			return updatePropsToAction(state, action, "coord");
 
 		case UPDATE_LIGHT_REACH:
 			return updatePropsToAction(state, action, "reach");
+
+		case UPDATE_LIGHT_X_INCREMENT:
+			return updatePropsToAction(state, action, "xIncrement");
+
+		case UPDATE_LIGHT_Y_INCREMENT:
+			return updatePropsToAction(state, action, "yIncrement");
 
 		default:
 			return state;
@@ -183,6 +198,11 @@ const store = Redux.createStore(app, initialState);
 
 const toggleLightAutomaticMovement = () => ({
 	type: TOGGLE_LIGHT_AUTOMATIC_MOVEMENT
+});
+
+const toggleLightOrigin = showOrigin => ({
+	type: TOGGLE_LIGHT_ORIGIN,
+	showOrigin
 });
 
 const updateLightCoord = (x, y) => ({
@@ -397,7 +417,12 @@ const Ticker = (function() {
 
 	const add = (id, start, increment, reset) => {
 		remove(id);
-		_update(id, start, increment, reset);
+		_updateTicker(id, start, increment, reset);
+		return Ticker;
+	};
+
+	const update = (id, prop, value) => {
+		_updateTickerProp(id, prop, value);
 		return Ticker;
 	};
 
@@ -448,11 +473,20 @@ const Ticker = (function() {
 		let newValue = _increment(ticker),
 			{ start, increment, reset } = ticker;
 
-		_update(id, start, increment, reset, newValue);
+		_updateTicker(id, start, increment, reset, newValue);
 	};
 
-	const _update = (id, start = 0, increment = 1, reset = arg => arg, value = start) => {
-		tickers[id] = { start, increment, reset, value };
+	const _updateTicker = (id, start = 0, increment = 1, reset = arg => arg, value = start) => {
+		tickers[id] = {
+			start,
+			increment,
+			reset,
+			value
+		};
+	};
+
+	const _updateTickerProp = (id, prop, value) => {
+		tickers[id][prop] = value;
 	};
 
 	const _increment = ticker => {
@@ -466,6 +500,7 @@ const Ticker = (function() {
 
 	return {
 		add,
+		update,
 		remove,
 		on,
 		off
@@ -480,9 +515,9 @@ const LightAnimator = (function() {
 
 		return () => {
 			let state = store.getState(),
-				{ autoMove } = state.light;
+				{ autoMove, xIncrement, yIncrement } = state.light;
 
-			if (autoMove !== lastState) {
+			if (lastState == null || autoMove !== lastState.autoMove) {
 				if (autoMove) {
 					_stopFollowingPointer();
 					_startAnimation();
@@ -493,7 +528,15 @@ const LightAnimator = (function() {
 				}
 			}
 
-			lastState = autoMove;
+			if (lastState != null && (xIncrement !== lastState.xIncrement || yIncrement !== lastState.yIncrement)) {
+				_updateAnimationTrajectory(xIncrement, yIncrement);
+			}
+
+			lastState = {
+				autoMove,
+				xIncrement,
+				yIncrement
+			};
 		};
 	};
 
@@ -503,11 +546,23 @@ const LightAnimator = (function() {
 			store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
 		});
 
+	const _updateAnimationTrajectory = (xIncrement, yIncrement) => {
+		Ticker
+			.update("x", "increment", xIncrement)
+			.update("y", "increment", yIncrement);
+	};
+
 	const _startAnimation = () => {
-		let state, source, gap, canvas, x, y;
+		let state, source, gap, width, height, x, y, xIncrement, yIncrement;
 
 		_handleBefore = () => {
-			state = store.getState(), { source, gap } = state.phrase, { width, height } = state.canvas;
+			state = store.getState();
+			source = state.phrase.source;
+			gap = state.phrase.gap;
+			width = state.canvas.width;
+			height = state.canvas.height;
+			xIncrement = state.light.xIncrement;
+			yIncrement = state.light.yIncrement;
 		};
 
 		_handleTick = tick => {
@@ -523,8 +578,8 @@ const LightAnimator = (function() {
 			.on("before", _handleBefore)
 			.on("tick", _handleTick)
 			.on("after", _handleAfter)
-			.add("x", 45, 1, _resetOnLap)
-			.add("y", 155, 1, _resetOnLap);
+			.add("x", 45, xIncrement, _resetOnLap)
+			.add("y", 155, yIncrement, _resetOnLap);
 	};
 
 	const _stopAnimation = () => {
@@ -559,11 +614,11 @@ const LightAnimator = (function() {
 	};
 })();
 
-const LightSourceView = (function() {
+const LightOriginView = (function() {
 	const render = (context, x, y) => {
 		context.beginPath();
 		context.arc(x, y, 5, 0, 2 * Math.PI, false);
-		context.fillStyle = "transparent";
+		context.fillStyle = "#fff";
 		context.fill();
 	};
 
@@ -572,13 +627,15 @@ const LightSourceView = (function() {
 	};
 })();
 
-const LightSource = (function() {
+const LightOrigin = (function() {
 	const render = context => {
 		return () => {
 			let state = store.getState(),
-				[x, y] = state.light.coord;
+				{ showOrigin, coord } = state.light;
 
-			LightSourceView.render(context, x, y);
+			if (showOrigin) {
+				LightOriginView.render(context, ...coord);
+			}
 		};
 	};
 
@@ -587,10 +644,19 @@ const LightSource = (function() {
 	};
 })();
 
-const SliderView = (function() {
-	const render = (element, value) => {
-		if (element.value !== value) {
-			element.value = value;
+const ControlView = (function() {
+	const render = (input, value) => {
+		if (input.type === "checkbox") {
+			_changeInputProperty(input, "checked", value);
+		}
+		else if (input.type === "range") {
+			_changeInputProperty(input, "value", value);
+		}
+	};
+
+	const _changeInputProperty = (input, prop, value) => {
+		if (input[prop] !== value) {
+			input[prop] = value;
 		}
 	};
 
@@ -599,19 +665,28 @@ const SliderView = (function() {
 	};
 })();
 
-const Slider = (function() {
-	const bind = (element, statePath, action) => {
-		_beforeFirstBind(element, action);
+const Control = (function() {
+	const bind = (input, statePath, action) => {
+		_beforeFirstBind(input, action);
 
 		return () => {
 			let state = store.getState();
-			SliderView.render(element, simpleAt(state, statePath));
+			ControlView.render(input, simpleAt(state, statePath));
 		};
 	};
 
-	const _beforeFirstBind = (element, action) =>
-		element.addEventListener("input", evt =>
-			store.dispatch(action(evt.target.value)));
+	const _beforeFirstBind = (input, action) => {
+		if (input.type === "range") {
+			input.addEventListener("input", evt => {
+				store.dispatch(action(evt.target.value));
+			});
+		}
+		else if (input.type === "checkbox") {
+			input.addEventListener("change", evt => {
+				store.dispatch(action(evt.target.checked));
+			});
+		}
+	};
 
 	return {
 		bind
@@ -623,16 +698,18 @@ const canvasContext = canvasElement.getContext("2d");
 
 store.subscribe(Canvas.render(canvasElement, canvasContext));
 store.subscribe(LightAnimator.update(canvasElement));
-store.subscribe(LightSource.render(canvasContext));
+store.subscribe(LightOrigin.render(canvasContext));
 
 const phraseGapInput = document.getElementById("phrase-gap-input");
 const lightReachInput = document.getElementById("light-reach-input");
 const rayApertureInput = document.getElementById("ray-aperture-input");
 const rayReachInput = document.getElementById("ray-reach-input");
+const lightOriginInput = document.getElementById("light-showOrigin-input");
 
-store.subscribe(Slider.bind(phraseGapInput, "phrase.gap", updatePhraseGap));
-store.subscribe(Slider.bind(lightReachInput, "light.reach", updateLightReach));
-store.subscribe(Slider.bind(rayApertureInput, "ray.aperture", updateRayAperture));
-store.subscribe(Slider.bind(rayReachInput, "ray.reach", updateRayReach));
+store.subscribe(Control.bind(phraseGapInput, "phrase.gap", updatePhraseGap));
+store.subscribe(Control.bind(lightReachInput, "light.reach", updateLightReach));
+store.subscribe(Control.bind(rayApertureInput, "ray.aperture", updateRayAperture));
+store.subscribe(Control.bind(rayReachInput, "ray.reach", updateRayReach));
+store.subscribe(Control.bind(lightOriginInput, "light.showOrigin", toggleLightOrigin));
 
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));

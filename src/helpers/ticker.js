@@ -8,7 +8,12 @@ export const Ticker = (function() {
 
 	const add = (id, start, increment, reset) => {
 		remove(id);
-		_update(id, start, increment, reset);
+		_updateTicker(id, start, increment, reset);
+		return Ticker;
+	};
+
+	const update = (id, prop, value) => {
+		_updateTickerProp(id, prop, value);
 		return Ticker;
 	};
 
@@ -59,11 +64,20 @@ export const Ticker = (function() {
 		let newValue = _increment(ticker),
 			{ start, increment, reset } = ticker;
 
-		_update(id, start, increment, reset, newValue);
+		_updateTicker(id, start, increment, reset, newValue);
 	};
 
-	const _update = (id, start = 0, increment = 1, reset = arg => arg, value = start) => {
-		tickers[id] = { start, increment, reset, value };
+	const _updateTicker = (id, start = 0, increment = 1, reset = arg => arg, value = start) => {
+		tickers[id] = {
+			start,
+			increment,
+			reset,
+			value
+		};
+	};
+
+	const _updateTickerProp = (id, prop, value) => {
+		tickers[id][prop] = value;
 	};
 
 	const _increment = ticker => {
@@ -77,6 +91,7 @@ export const Ticker = (function() {
 
 	return {
 		add,
+		update,
 		remove,
 		on,
 		off

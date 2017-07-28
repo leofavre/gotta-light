@@ -9,7 +9,8 @@
 
 <body>
 	<canvas id="canvas"></canvas>
-	<div id="controls">
+	<div class="controls controls--appearance">
+		<h4>Appearance</h4>
 		<label>
 			<span>Aperture</span>
 			<input id="ray-aperture-input" type="range" min="0.5" max="90">
@@ -25,6 +26,13 @@
 		<label>
 			<span>Font size</span>
 			<input id="phrase-gap-input" type="range" min="1" max="20">
+		</label>
+	</div>
+	<div class="controls controls--animation">
+		<h4>Animation</h4>
+		<label>
+			<span>Show origin</span>
+			<input id="light-showOrigin-input" type="checkbox">
 		</label>
 	</div>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/redux/3.7.2/redux.min.js" integrity="sha256-Y8AuGIYFWCOBO5/w1oXzcEErW4JALGUWiG5VWleVWyw=" crossorigin="anonymous"></script>

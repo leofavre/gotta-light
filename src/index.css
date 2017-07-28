@@ -18,28 +18,23 @@ body {
 	background: transparent;
 }
 
-#light {
-	position: absolute;
-	display: none;
-	width: 8px;
-	height: 8px;
-	margin-top: -4px;
-	margin-left: -4px;
-	border-radius: 50%;
-	background: #fff;
-	z-index: 5;
-}
-
-#controls {
+.controls {
 	position: fixed;
-	left: 0em;
-	bottom: 0em;
+	bottom: 0;
 	color: #fff;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 
 	box-sizing: border-box;
-	padding: 15px;
+	padding: 1em;
+}
+
+.controls--appearance {
+	left: 0;
+}
+
+.controls--animation {
+	right: 0;
 }
 
 label {

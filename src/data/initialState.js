@@ -10,11 +10,14 @@ export const initialState = {
 	},
 	light: {
 		autoMove: true,
+		showOrigin: false,
 		coord: [
 			Math.round(window.innerWidth / 3),
 			Math.round(window.innerHeight / 3)
 		],
 		reach: 5,
+		xIncrement: 1,
+		yIncrement: 1
 	},
 	phrase: {
 		gap: 9,

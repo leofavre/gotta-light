@@ -12,9 +12,9 @@ export const LightAnimator = (function() {
 
 		return () => {
 			let state = store.getState(),
-				{ autoMove } = state.light;
+				{ autoMove, xIncrement, yIncrement } = state.light;
 
-			if (autoMove !== lastState) {
+			if (lastState == null || autoMove !== lastState.autoMove) {
 				if (autoMove) {
 					_stopFollowingPointer();
 					_startAnimation();
@@ -25,7 +25,15 @@ export const LightAnimator = (function() {
 				}
 			}
 
-			lastState = autoMove;
+			if (lastState != null && (xIncrement !== lastState.xIncrement || yIncrement !== lastState.yIncrement)) {
+				_updateAnimationTrajectory(xIncrement, yIncrement);
+			}
+
+			lastState = {
+				autoMove,
+				xIncrement,
+				yIncrement
+			};
 		};
 	};
 
@@ -35,11 +43,23 @@ export const LightAnimator = (function() {
 			store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
 		});
 
+	const _updateAnimationTrajectory = (xIncrement, yIncrement) => {
+		Ticker
+			.update("x", "increment", xIncrement)
+			.update("y", "increment", yIncrement);
+	};
+
 	const _startAnimation = () => {
-		let state, source, gap, canvas, x, y;
+		let state, source, gap, width, height, x, y, xIncrement, yIncrement;
 
 		_handleBefore = () => {
-			state = store.getState(), { source, gap } = state.phrase, { width, height } = state.canvas;
+			state = store.getState();
+			source = state.phrase.source;
+			gap = state.phrase.gap;
+			width = state.canvas.width;
+			height = state.canvas.height;
+			xIncrement = state.light.xIncrement;
+			yIncrement = state.light.yIncrement;
 		};
 
 		_handleTick = tick => {
@@ -55,8 +75,8 @@ export const LightAnimator = (function() {
 			.on("before", _handleBefore)
 			.on("tick", _handleTick)
 			.on("after", _handleAfter)
-			.add("x", 45, 1, _resetOnLap)
-			.add("y", 155, 1, _resetOnLap);
+			.add("x", 45, xIncrement, _resetOnLap)
+			.add("y", 155, yIncrement, _resetOnLap);
 	};
 
 	const _stopAnimation = () => {
