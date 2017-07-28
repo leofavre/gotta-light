@@ -18,6 +18,18 @@ body {
 	background: transparent;
 }
 
+#light {
+	position: absolute;
+	display: none;
+	width: 8px;
+	height: 8px;
+	margin-top: -4px;
+	margin-left: -4px;
+	border-radius: 50%;
+	background: #fff;
+	z-index: 5;
+}
+
 #controls {
 	position: fixed;
 	left: 0em;

@@ -16,12 +16,12 @@ export const LightAnimator = (function() {
 
 			if (autoMove !== lastState) {
 				if (autoMove) {
-					_stopFollowingPointer(element);
+					_stopFollowingPointer();
 					_startAnimation();
 				}
 				else {
 					_stopAnimation();
-					_startFollowingPointer(element);
+					_startFollowingPointer();
 				}
 			}
 
@@ -77,11 +77,11 @@ export const LightAnimator = (function() {
 
 	const _resetOnLap = value => (value >= 360) ? 0 : value;
 
-	const _startFollowingPointer = element =>
-		element.addEventListener("mousemove", _handleMousemove);
+	const _startFollowingPointer = () =>
+		document.body.addEventListener("mousemove", _handleMousemove);
 
-	const _stopFollowingPointer = element =>
-		element.removeEventListener("mousemove", _handleMousemove);
+	const _stopFollowingPointer = () =>
+		document.body.removeEventListener("mousemove", _handleMousemove);
 
 	const _handleMousemove = evt =>
 		store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
