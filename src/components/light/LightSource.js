@@ -1,13 +1,13 @@
 import { store } from "../../store/index";
-import { DotView } from "./DotView";
+import { LightSourceView } from "./LightSourceView";
 
-export const Dot = (function() {
+export const LightSource = (function() {
 	const render = context => {
 		return () => {
 			let state = store.getState(),
 				[x, y] = state.light.coord;
 
-			DotView.render(context, x, y);
+			LightSourceView.render(context, x, y);
 		};
 	};
 

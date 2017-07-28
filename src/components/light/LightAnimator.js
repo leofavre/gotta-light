@@ -4,7 +4,7 @@ import { Phrase } from "../phrase/Phrase";
 import { pendularEasing } from "../../helpers/index";
 import { Ticker } from "../../helpers/ticker";
 
-export const Light = (function() {
+export const LightAnimator = (function() {
 	let lastState, _handleBefore, _handleTick, _handleAfter;
 
 	const render = element => {

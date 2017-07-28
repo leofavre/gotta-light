@@ -472,7 +472,7 @@ const Ticker = (function() {
 	};
 })();
 
-const Light = (function() {
+const LightAnimator = (function() {
 	let lastState, _handleBefore, _handleTick, _handleAfter;
 
 	const render = element => {
@@ -559,13 +559,26 @@ const Light = (function() {
 	};
 })();
 
-const Dot = (function() {
+const LightSourceView = (function() {
+	const render = (context, x, y) => {
+		context.beginPath();
+		context.arc(x, y, 5, 0, 2 * Math.PI, false);
+		context.fillStyle = "#fff";
+		context.fill();
+	};
+
+	return {
+		render
+	};
+})();
+
+const LightSource = (function() {
 	const render = context => {
 		return () => {
 			let state = store.getState(),
 				[x, y] = state.light.coord;
 
-			// DotView.render(context, x, y);
+			LightSourceView.render(context, x, y);
 		};
 	};
 
@@ -629,8 +642,8 @@ const controlsBindings = [{
 }];
 
 store.subscribe(Canvas.render(canvasElement, canvasContext));
-store.subscribe(Light.render(canvasElement));
-store.subscribe(Dot.render(canvasContext));
+store.subscribe(LightAnimator.render(canvasElement));
+store.subscribe(LightSource.render(canvasContext));
 store.subscribe(Controls.update(controlsBindings));
 
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));

@@ -5,8 +5,8 @@ import { updateLightReach } from "./components/light/actionCreators";
 import { updatePhraseGap } from "./components/phrase/actionCreators";
 import { updateRayAperture, updateRayReach } from "./components/ray/actionCreators";
 import { Canvas } from "./components/canvas/Canvas";
-import { Light } from "./components/light/Light";
-import { Dot } from "./components/dot/Dot";
+import { LightAnimator } from "./components/light/LightAnimator";
+import { LightSource } from "./components/light/LightSource";
 import { Controls } from "./components/controls/Controls";
 
 import { resizeCanvas } from "./components/canvas/actionCreators";
@@ -37,8 +37,8 @@ const controlsBindings = [{
 }];
 
 store.subscribe(Canvas.render(canvasElement, canvasContext));
-store.subscribe(Light.render(canvasElement));
-store.subscribe(Dot.render(canvasContext));
+store.subscribe(LightAnimator.render(canvasElement));
+store.subscribe(LightSource.render(canvasContext));
 store.subscribe(Controls.update(controlsBindings));
 
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
