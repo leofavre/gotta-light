@@ -524,7 +524,7 @@ const LightAnimator = (function() {
 			.on("tick", _handleTick)
 			.on("after", _handleAfter)
 			.add("x", 45, 1, _resetOnLap)
-			.add("y", 155, 1.6015625, _resetOnLap);
+			.add("y", 155, 1, _resetOnLap);
 	};
 
 	const _stopAnimation = () => {
