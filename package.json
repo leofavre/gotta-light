@@ -5,7 +5,7 @@
   "main": "./src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "copy": "mkdir -p ./dist/es6 && rsync -av --update -f'- */' -f'- index.js' -f'+ *' ./src/* ./dist/es6",
+    "copy": "mkdir -p ./dist/es6 && rsync -av -f'- */' -f'- index.js' -f'+ *' ./src/* ./dist/es6",
     "rollup": "./node_modules/.bin/rollup -f es -i ./src/index.js -o ./dist/es6/index.js",
     "build": "npm run copy && npm run rollup"
   },
