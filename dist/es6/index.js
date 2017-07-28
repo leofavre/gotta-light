@@ -559,24 +559,13 @@ const Light = (function() {
 	};
 })();
 
-const DotView = (function() {
-	const render = (element, x, y) => {
-		element.style.left = `${x}px`;
-		element.style.top = `${y}px`;
-	};
-
-	return {
-		render
-	};
-})();
-
 const Dot = (function() {
-	const render = (element) => {
+	const render = context => {
 		return () => {
 			let state = store.getState(),
 				[x, y] = state.light.coord;
 
-			DotView.render(element, x, y);
+			// DotView.render(context, x, y);
 		};
 	};
 
@@ -616,7 +605,6 @@ const Controls = (function() {
 
 const canvasElement = document.getElementById("canvas");
 const canvasContext = canvasElement.getContext("2d");
-	dotElement = document.getElementById("dot"),
 	phraseGapInput = document.getElementById("phrase-gap-input"),
 	lightReachInput = document.getElementById("light-reach-input"),
 	rayApertureInput = document.getElementById("ray-aperture-input"),
@@ -642,7 +630,7 @@ const controlsBindings = [{
 
 store.subscribe(Canvas.render(canvasElement, canvasContext));
 store.subscribe(Light.render(canvasElement));
-store.subscribe(Dot.render(dotElement));
+store.subscribe(Dot.render(canvasContext));
 store.subscribe(Controls.update(controlsBindings));
 
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
