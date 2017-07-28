@@ -215,6 +215,16 @@ const updateLightReach = reach => ({
 	reach
 });
 
+const updateLightXIncrement = xIncrement => ({
+	type: UPDATE_LIGHT_X_INCREMENT,
+	xIncrement
+});
+
+const updateLightYIncrement = yIncrement => ({
+	type: UPDATE_LIGHT_Y_INCREMENT,
+	yIncrement
+});
+
 const updatePhraseGap = gap => ({
 	type: UPDATE_PHRASE_GAP,
 	gap
@@ -677,8 +687,11 @@ const Control = (function() {
 
 	const _beforeFirstBind = (input, action) => {
 		if (input.type === "range") {
+			console.log(input, action);
+
 			input.addEventListener("input", evt => {
-				store.dispatch(action(evt.target.value));
+				console.log(parseFloat(evt.target.value), typeof evt.target.value);
+				store.dispatch(action(parseFloat(evt.target.value)));
 			});
 		}
 		else if (input.type === "checkbox") {
@@ -705,11 +718,15 @@ const lightReachInput = document.getElementById("light-reach-input");
 const rayApertureInput = document.getElementById("ray-aperture-input");
 const rayReachInput = document.getElementById("ray-reach-input");
 const lightOriginInput = document.getElementById("light-showOrigin-input");
+const lightXIncrementInput = document.getElementById("light-xIncrement-input");
+const lightYIncrementInput = document.getElementById("light-yIncrement-input");
 
 store.subscribe(Control.bind(phraseGapInput, "phrase.gap", updatePhraseGap));
 store.subscribe(Control.bind(lightReachInput, "light.reach", updateLightReach));
 store.subscribe(Control.bind(rayApertureInput, "ray.aperture", updateRayAperture));
 store.subscribe(Control.bind(rayReachInput, "ray.reach", updateRayReach));
 store.subscribe(Control.bind(lightOriginInput, "light.showOrigin", toggleLightOrigin));
+store.subscribe(Control.bind(lightXIncrementInput, "light.xIncrement", updateLightXIncrement));
+store.subscribe(Control.bind(lightYIncrementInput, "light.yIncrement", updateLightYIncrement));
 
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));

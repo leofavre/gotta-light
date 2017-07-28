@@ -15,7 +15,7 @@ export const Control = (function() {
 	const _beforeFirstBind = (input, action) => {
 		if (input.type === "range") {
 			input.addEventListener("input", evt => {
-				store.dispatch(action(evt.target.value));
+				store.dispatch(action(parseFloat(evt.target.value)));
 			});
 		}
 		else if (input.type === "checkbox") {

@@ -1,7 +1,7 @@
 import "./data/banner.txt";
 
 import { store } from "./store/index";
-import { updateLightReach, toggleLightOrigin } from "./components/light/actionCreators";
+import { updateLightReach, toggleLightOrigin, updateLightXIncrement, updateLightYIncrement } from "./components/light/actionCreators";
 import { updatePhraseGap } from "./components/phrase/actionCreators";
 import { updateRayAperture, updateRayReach } from "./components/ray/actionCreators";
 import { Canvas } from "./components/canvas/Canvas";
@@ -22,12 +22,16 @@ const phraseGapInput = document.getElementById("phrase-gap-input"),
 	lightReachInput = document.getElementById("light-reach-input"),
 	rayApertureInput = document.getElementById("ray-aperture-input"),
 	rayReachInput = document.getElementById("ray-reach-input"),
-	lightOriginInput = document.getElementById("light-showOrigin-input");
+	lightOriginInput = document.getElementById("light-showOrigin-input"),
+	lightXIncrementInput = document.getElementById("light-xIncrement-input"),
+	lightYIncrementInput = document.getElementById("light-yIncrement-input");
 
 store.subscribe(Control.bind(phraseGapInput, "phrase.gap", updatePhraseGap));
 store.subscribe(Control.bind(lightReachInput, "light.reach", updateLightReach));
 store.subscribe(Control.bind(rayApertureInput, "ray.aperture", updateRayAperture));
 store.subscribe(Control.bind(rayReachInput, "ray.reach", updateRayReach));
 store.subscribe(Control.bind(lightOriginInput, "light.showOrigin", toggleLightOrigin));
+store.subscribe(Control.bind(lightXIncrementInput, "light.xIncrement", updateLightXIncrement));
+store.subscribe(Control.bind(lightYIncrementInput, "light.yIncrement", updateLightYIncrement));
 
 store.dispatch(resizeCanvas(window.innerWidth, window.innerHeight));
