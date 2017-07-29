@@ -519,7 +519,7 @@ const Ticker = (function() {
 })();
 
 const LightAnimator = (function() {
-	let lastState, _handleBefore, _handleTick, _handleAfter;
+	let lastState = {}, _handleBefore, _handleTick, _handleAfter;
 
 	const update = element => {
 		_beforeFirstUpdate(element);
@@ -528,27 +528,35 @@ const LightAnimator = (function() {
 			let state = store.getState(),
 				{ autoMove, xIncrement, yIncrement } = state.light;
 
-			if (lastState == null || autoMove !== lastState.autoMove) {
-				if (autoMove) {
-					_stopFollowingPointer();
-					_startAnimation();
-				}
-				else {
-					_stopAnimation();
-					_startFollowingPointer();
-				}
-			}
+			_updateBehaviour(lastState, autoMove);
+			_updateAnimation(lastState, xIncrement, yIncrement);
 
-			if (lastState != null && (xIncrement !== lastState.xIncrement || yIncrement !== lastState.yIncrement)) {
-				_updateAnimationTrajectory(xIncrement, yIncrement);
-			}
-
-			lastState = {
+			lastState = updateProps(lastState, {
 				autoMove,
 				xIncrement,
 				yIncrement
-			};
+			});
 		};
+	};
+
+	const _updateBehaviour = (lastState, autoMove) => {
+		if (lastState.autoMove == null || autoMove !== lastState.autoMove) {
+			if (autoMove) {
+				_stopFollowingPointer();
+				_startAnimation();
+			}
+			else {
+				_stopAnimation();
+				_startFollowingPointer();
+			}
+		}
+	};
+
+	const _updateAnimation = (lastState, xIncrement, yIncrement) => {
+		if (lastState.xIncrement != null && lastState.yIncrement != null &&
+			(xIncrement !== lastState.xIncrement || yIncrement !== lastState.yIncrement)) {
+			_updateAnimationTrajectory(xIncrement, yIncrement);
+		}
 	};
 
 	const _beforeFirstUpdate = element =>
