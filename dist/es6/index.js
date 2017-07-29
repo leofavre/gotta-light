@@ -591,8 +591,6 @@ const LightAnimator = (function() {
 		};
 
 		_handleTick = tick => {
-			console.log(tick);
-
 			x = _calculateAxisIncrement(tick.x, width, Phrase.getWidth(source, gap));
 			y = _calculateAxisIncrement(tick.y, height, Phrase.getHeight(source, gap));
 
@@ -603,9 +601,6 @@ const LightAnimator = (function() {
 		_handleAfter = () => {
 			store.dispatch(updateLightCoord(x, y));
 		};
-
-		console.log("--------------------------starting");
-		console.log(lastState.x, lastState.y);
 
 		Ticker
 			.on("before", _handleBefore)
@@ -622,9 +617,6 @@ const LightAnimator = (function() {
 			.off("after", _handleAfter)
 			.remove("x")
 			.remove("y");
-
-		console.log("--------------------------stopping");
-		console.log(lastState.x, lastState.y);
 	};
 
 	const _calculateAxisIncrement = (value, canvasMeasure, phraseMeasure) => {
@@ -634,7 +626,7 @@ const LightAnimator = (function() {
 		return minValue + (maxValue * pendularEasing(value));
 	};
 
-	const _resetOnLap = value => (value >= 360) ? 0 : value;
+	const _resetOnLap = value => value % 360;
 
 	const _startFollowingPointer = () =>
 		document.body.addEventListener("mousemove", _handleMousemove);
