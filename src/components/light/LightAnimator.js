@@ -6,7 +6,12 @@ import { Ticker } from "../../helpers/ticker";
 import { updateProps } from "../../helpers/index";
 
 export const LightAnimator = (function() {
-	let lastState = {}, _handleBefore, _handleTick, _handleAfter;
+	let lastState = {
+		x: 45,
+		y: 155
+	};
+
+	let _handleBefore, _handleTick, _handleAfter;
 
 	const update = element => {
 		_beforeFirstUpdate(element);
@@ -24,6 +29,13 @@ export const LightAnimator = (function() {
 				yIncrement
 			});
 		};
+	};
+
+	const _beforeFirstUpdate = element => {
+		element.addEventListener("click", evt => {
+			store.dispatch(toggleLightAutomaticMovement());
+			store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
+		});
 	};
 
 	const _updateBehaviour = (lastState, autoMove) => {
@@ -45,12 +57,6 @@ export const LightAnimator = (function() {
 			_updateAnimationTrajectory(xIncrement, yIncrement);
 		}
 	};
-
-	const _beforeFirstUpdate = element =>
-		element.addEventListener("click", evt => {
-			store.dispatch(toggleLightAutomaticMovement());
-			store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
-		});
 
 	const _updateAnimationTrajectory = (xIncrement, yIncrement) => {
 		Ticker
@@ -74,6 +80,9 @@ export const LightAnimator = (function() {
 		_handleTick = tick => {
 			x = _calculateAxisIncrement(tick.x, width, Phrase.getWidth(source, gap));
 			y = _calculateAxisIncrement(tick.y, height, Phrase.getHeight(source, gap));
+
+			lastState.x = tick.x;
+			lastState.y = tick.y;
 		};
 
 		_handleAfter = () => {
@@ -84,8 +93,8 @@ export const LightAnimator = (function() {
 			.on("before", _handleBefore)
 			.on("tick", _handleTick)
 			.on("after", _handleAfter)
-			.add("x", 45, xIncrement, _resetOnLap)
-			.add("y", 155, yIncrement, _resetOnLap);
+			.add("x", lastState.x, xIncrement, _resetOnLap)
+			.add("y", lastState.y, yIncrement, _resetOnLap);
 	};
 
 	const _stopAnimation = () => {
