@@ -7,7 +7,8 @@ import {
 	UPDATE_LIGHT_COORD,
 	UPDATE_LIGHT_REACH,
 	UPDATE_LIGHT_X_INCREMENT,
-	UPDATE_LIGHT_Y_INCREMENT
+	UPDATE_LIGHT_Y_INCREMENT,
+	UPDATE_LIGHT_START
 } from "./constants";
 
 export const light = (state = initialState.light, action) => {
@@ -29,6 +30,9 @@ export const light = (state = initialState.light, action) => {
 
 		case UPDATE_LIGHT_Y_INCREMENT:
 			return updatePropsToAction(state, action, "yIncrement");
+
+		case UPDATE_LIGHT_START:
+			return updatePropsToAction(state, action, "xStart", "yStart");
 
 		default:
 			return state;

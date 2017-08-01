@@ -12,12 +12,14 @@ export const initialState = {
 		autoMove: true,
 		showOrigin: false,
 		coord: [
-			Math.round(window.innerWidth / 3),
-			Math.round(window.innerHeight / 3)
+			Math.round(window.innerWidth / 2),
+			Math.round(window.innerHeight / 2)
 		],
 		reach: 5,
 		xIncrement: 1,
-		yIncrement: 1
+		yIncrement: 1,
+		xStart: 45,
+		yStart: 155
 	},
 	phrase: {
 		gap: 9,
