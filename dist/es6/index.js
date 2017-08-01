@@ -637,7 +637,7 @@ const LightAnimator = (function() {
 		return minValue + (maxValue * pendularEasing(value));
 	};
 
-	const _resetOnLap = value => (value >= 360) ? 0 : value;
+	const _resetOnLap = value => value % 360;
 
 	const _startFollowingPointer = () =>
 		document.body.addEventListener("mousemove", _handleMousemove);

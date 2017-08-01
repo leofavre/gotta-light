@@ -19,6 +19,11 @@ export const Ticker = (function() {
 		return Ticker;
 	};
 
+	const updateReset = (id, value) => {
+		_updateTickerProp(id, "reset", value);
+		return Ticker;
+	};
+
 	const remove = id => {
 		delete tickers[id];
 		return Ticker;
@@ -95,6 +100,7 @@ export const Ticker = (function() {
 	return {
 		add,
 		updateIncrement,
+		updateReset,
 		remove,
 		on,
 		off,
