@@ -41,12 +41,14 @@ const initialState = {
 		autoMove: true,
 		showOrigin: false,
 		coord: [
-			Math.round(window.innerWidth / 3),
-			Math.round(window.innerHeight / 3)
+			Math.round(window.innerWidth / 2),
+			Math.round(window.innerHeight / 2)
 		],
 		reach: 5,
 		xIncrement: 1,
-		yIncrement: 1
+		yIncrement: 1,
+		xStart: 45,
+		yStart: 155
 	},
 	phrase: {
 		gap: 9,
@@ -110,6 +112,8 @@ const updatePropsToAction = (state, action, ...props) => {
 
 	return updateProps(state, ...newProps);
 };
+
+const hasChanged = (currentValue, lastValue) => lastValue == null || currentValue !== lastValue;
 
 const RESIZE_CANVAS = "RESIZE_CANVAS";
 
@@ -417,6 +421,22 @@ const Canvas = (function() {
 	};
 })();
 
+const LightMouseAnimator = (function() {
+	const start = () =>
+		document.body.addEventListener("mousemove", _handleMousemove);
+
+	const stop = () =>
+		document.body.removeEventListener("mousemove", _handleMousemove);
+
+	const _handleMousemove = evt =>
+		store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
+
+	return {
+		start,
+		stop
+	};
+})();
+
 const Ticker = (function() {
 	let tickers = {},
 		listeners = {
@@ -431,8 +451,15 @@ const Ticker = (function() {
 		return Ticker;
 	};
 
+	const getValueFrom = id => (tickers[id] != null) ? tickers[id].value : undefined;
+
 	const updateIncrement = (id, value) => {
 		_updateTickerProp(id, "increment", value);
+		return Ticker;
+	};
+
+	const updateReset = (id, value) => {
+		_updateTickerProp(id, "reset", value);
 		return Ticker;
 	};
 
@@ -512,31 +539,101 @@ const Ticker = (function() {
 	return {
 		add,
 		updateIncrement,
+		updateReset,
 		remove,
 		on,
-		off
+		off,
+		getValueFrom
+	};
+})();
+
+const LightAutoAnimator = (function() {
+	let _handleBefore, _handleTick, _handleAfter;
+
+	const start = (xIncrement, yIncrement, xStart, yStart) => {
+		let state, source, gap, width, height, x, y;
+
+		_handleBefore = () => {
+			state = store.getState();
+			source = state.phrase.source;
+			gap = state.phrase.gap;
+			width = state.canvas.width;
+			height = state.canvas.height;
+		};
+
+		_handleTick = tick => {
+			x = _calculateAxisIncrement(tick.x, width, Phrase.getWidth(source, gap));
+			y = _calculateAxisIncrement(tick.y, height, Phrase.getHeight(source, gap));
+		};
+
+		_handleAfter = () => {
+			store.dispatch(updateLightCoord(x, y));
+		};
+
+		Ticker
+			.on("before", _handleBefore)
+			.on("tick", _handleTick)
+			.on("after", _handleAfter)
+			.add("x", xStart, xIncrement, _resetOnLap)
+			.add("y", yStart, yIncrement, _resetOnLap);
+	};
+
+	const stop = () => {
+		let newXStart = Ticker.getValueFrom("x"),
+			newYStart = Ticker.getValueFrom("y");
+
+		Ticker
+			.off("before", _handleBefore)
+			.off("tick", _handleTick)
+			.off("after", _handleAfter)
+			.remove("x")
+			.remove("y");
+
+		return {
+			xStart: newXStart,
+			yStart: newYStart
+		};
+	};
+
+	const update = (xIncrement, yIncrement) => {
+		Ticker
+			.updateIncrement("x", xIncrement)
+			.updateIncrement("y", yIncrement);
+	};
+
+	const _calculateAxisIncrement = (value, canvasMeasure, phraseMeasure) => {
+		let minValue = (canvasMeasure - phraseMeasure) / 4,
+			maxValue = phraseMeasure + (canvasMeasure - phraseMeasure) / 2;
+
+		return minValue + (maxValue * pendularEasing(value));
+	};
+
+	const _resetOnLap = value => value % 360;
+
+	return {
+		start,
+		stop,
+		update
 	};
 })();
 
 const LightAnimator = (function() {
-	let lastState = {
-		x: 45,
-		y: 155
-	};
-
-	let _handleBefore, _handleTick, _handleAfter;
+	let last = {};
 
 	const update = element => {
 		_beforeFirstUpdate(element);
 
 		return () => {
 			let state = store.getState(),
-				{ autoMove, xIncrement, yIncrement } = state.light;
+				{ autoMove, xIncrement, yIncrement} = state.light;
 
-			_updateBehaviour(lastState, autoMove);
-			_updateAnimation(lastState, xIncrement, yIncrement);
+			let xStart = last.xStart == null ? state.light.xStart : last.xStart,
+				yStart = last.yStart == null ? state.light.yStart : last.yStart;
 
-			lastState = updateProps(lastState, {
+			_updateBehaviourIfChanged(autoMove, xIncrement, yIncrement, xStart, yStart);
+			_updateAnimationTrajectoryIfChanged(autoMove, xIncrement, yIncrement);
+
+			last = updateProps(last, {
 				autoMove,
 				xIncrement,
 				yIncrement
@@ -551,99 +648,29 @@ const LightAnimator = (function() {
 		});
 	};
 
-	const _updateBehaviour = (lastState, autoMove) => {
-		if (lastState.autoMove == null || autoMove !== lastState.autoMove) {
+	const _updateBehaviourIfChanged = (autoMove, xIncrement, yIncrement, xStart, yStart) => {
+		if (hasChanged(autoMove, last.autoMove)) {
 			if (autoMove) {
-				_stopFollowingPointer();
-				_startAnimation();
+				LightMouseAnimator.stop();
+				LightAutoAnimator.start(xIncrement, yIncrement, xStart, yStart);
 			}
 			else {
-				_stopAnimation();
-				_startFollowingPointer();
+				let { xStart, yStart } = LightAutoAnimator.stop();
+				LightMouseAnimator.start();
+
+				last = updateProps(last, {
+					xStart,
+					yStart
+				});
 			}
 		}
 	};
 
-	const _updateAnimation = (lastState, xIncrement, yIncrement) => {
-		if (lastState.xIncrement != null && lastState.yIncrement != null &&
-			(xIncrement !== lastState.xIncrement || yIncrement !== lastState.yIncrement)) {
-			_updateAnimationTrajectory(xIncrement, yIncrement);
+	const _updateAnimationTrajectoryIfChanged = (autoMove, xIncrement, yIncrement) => {
+		if (autoMove && (hasChanged(xIncrement, last.xIncrement) || hasChanged(yIncrement, last.yIncrement))) {
+			LightAutoAnimator.update(xIncrement, yIncrement);
 		}
 	};
-
-	const _updateAnimationTrajectory = (xIncrement, yIncrement) => {
-		Ticker
-			.updateIncrement("x", xIncrement)
-			.updateIncrement("y", yIncrement);
-	};
-
-	const _startAnimation = () => {
-		let state, source, gap, width, height, x, y, xIncrement, yIncrement;
-
-		_handleBefore = () => {
-			state = store.getState();
-			source = state.phrase.source;
-			gap = state.phrase.gap;
-			width = state.canvas.width;
-			height = state.canvas.height;
-			xIncrement = state.light.xIncrement;
-			yIncrement = state.light.yIncrement;
-		};
-
-		_handleTick = tick => {
-			console.log(tick);
-
-			x = _calculateAxisIncrement(tick.x, width, Phrase.getWidth(source, gap));
-			y = _calculateAxisIncrement(tick.y, height, Phrase.getHeight(source, gap));
-
-			lastState.x = tick.x;
-			lastState.y = tick.y;
-		};
-
-		_handleAfter = () => {
-			store.dispatch(updateLightCoord(x, y));
-		};
-
-		console.log("--------------------------starting");
-		console.log(lastState.x, lastState.y);
-
-		Ticker
-			.on("before", _handleBefore)
-			.on("tick", _handleTick)
-			.on("after", _handleAfter)
-			.add("x", lastState.x, xIncrement, _resetOnLap)
-			.add("y", lastState.y, yIncrement, _resetOnLap);
-	};
-
-	const _stopAnimation = () => {
-		Ticker
-			.off("before", _handleBefore)
-			.off("tick", _handleTick)
-			.off("after", _handleAfter)
-			.remove("x")
-			.remove("y");
-
-		console.log("--------------------------stopping");
-		console.log(lastState.x, lastState.y);
-	};
-
-	const _calculateAxisIncrement = (value, canvasMeasure, phraseMeasure) => {
-		let minValue = (canvasMeasure - phraseMeasure) / 4,
-			maxValue = phraseMeasure + (canvasMeasure - phraseMeasure) / 2;
-
-		return minValue + (maxValue * pendularEasing(value));
-	};
-
-	const _resetOnLap = value => (value >= 360) ? 0 : value;
-
-	const _startFollowingPointer = () =>
-		document.body.addEventListener("mousemove", _handleMousemove);
-
-	const _stopFollowingPointer = () =>
-		document.body.removeEventListener("mousemove", _handleMousemove);
-
-	const _handleMousemove = evt =>
-		store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
 
 	return {
 		update

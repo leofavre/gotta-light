@@ -12,8 +12,15 @@ export const Ticker = (function() {
 		return Ticker;
 	};
 
+	const getValueFrom = id => (tickers[id] != null) ? tickers[id].value : undefined;
+
 	const updateIncrement = (id, value) => {
 		_updateTickerProp(id, "increment", value);
+		return Ticker;
+	};
+
+	const updateReset = (id, value) => {
+		_updateTickerProp(id, "reset", value);
 		return Ticker;
 	};
 
@@ -93,8 +100,10 @@ export const Ticker = (function() {
 	return {
 		add,
 		updateIncrement,
+		updateReset,
 		remove,
 		on,
-		off
+		off,
+		getValueFrom
 	};
 })();
