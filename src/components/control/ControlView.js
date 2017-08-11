@@ -1,8 +1,10 @@
 export const ControlView = (function() {
 	const render = (input, value) => {
-		switch (input.type) {
-			case "range": _changeInputProperty(input, "value", value);
-			case "checkbox": _changeInputProperty(input, "checked", value);
+		if (input.type === "checkbox") {
+			_changeInputProperty(input, "checked", value);
+		}
+		else if (input.type === "range") {
+			_changeInputProperty(input, "value", value);
 		}
 	};
 

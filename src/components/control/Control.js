@@ -13,22 +13,16 @@ export const Control = (function() {
 	};
 
 	const _beforeFirstBind = (input, action) => {
-		switch (input.type) {
-			case "range": _dealWithRange(input, action);
-			case "checkbox": _dealWithCheckbox(input, action);
+		if (input.type === "range") {
+			input.addEventListener("input", evt => {
+				store.dispatch(action(parseFloat(evt.target.value)));
+			});
 		}
-	};
-
-	const _dealWithRange = (input, action) => {
-		input.addEventListener("input", evt => {
-			store.dispatch(action(parseFloat(evt.target.value)));
-		});
-	};
-
-	const _dealWithCheckbox = (input, action) => {
-		input.addEventListener("change", evt => {
-			store.dispatch(action(evt.target.checked));
-		});
+		else if (input.type === "checkbox") {
+			input.addEventListener("change", evt => {
+				store.dispatch(action(evt.target.checked));
+			});
+		}
 	};
 
 	return {

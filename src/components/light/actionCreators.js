@@ -4,8 +4,7 @@ import {
 	UPDATE_LIGHT_COORD,
 	UPDATE_LIGHT_REACH,
 	UPDATE_LIGHT_X_INCREMENT,
-	UPDATE_LIGHT_Y_INCREMENT,
-	UPDATE_LIGHT_START
+	UPDATE_LIGHT_Y_INCREMENT
 } from "./constants";
 
 export const toggleLightAutomaticMovement = () => ({
@@ -35,10 +34,4 @@ export const updateLightXIncrement = xIncrement => ({
 export const updateLightYIncrement = yIncrement => ({
 	type: UPDATE_LIGHT_Y_INCREMENT,
 	yIncrement
-});
-
-export const updateLightStart = (xStart, yStart) => ({
-	type: UPDATE_LIGHT_START,
-	xStart,
-	yStart
 });

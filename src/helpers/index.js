@@ -52,3 +52,5 @@ export const updatePropsToAction = (state, action, ...props) => {
 
 	return updateProps(state, ...newProps);
 };
+
+export const hasChanged = (currentValue, lastValue) => lastValue == null || currentValue !== lastValue;

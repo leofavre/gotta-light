@@ -113,6 +113,8 @@ const updatePropsToAction = (state, action, ...props) => {
 	return updateProps(state, ...newProps);
 };
 
+const hasChanged = (currentValue, lastValue) => lastValue == null || currentValue !== lastValue;
+
 const RESIZE_CANVAS = "RESIZE_CANVAS";
 
 const canvas = (state = initialState.canvas, action) => {
@@ -131,7 +133,6 @@ const UPDATE_LIGHT_COORD = "UPDATE_LIGHT_COORD";
 const UPDATE_LIGHT_REACH = "UPDATE_LIGHT_REACH";
 const UPDATE_LIGHT_X_INCREMENT = "UPDATE_LIGHT_X_INCREMENT";
 const UPDATE_LIGHT_Y_INCREMENT = "UPDATE_LIGHT_Y_INCREMENT";
-const UPDATE_LIGHT_START = "UPDATE_LIGHT_START";
 
 const light = (state = initialState.light, action) => {
 	switch (action.type) {
@@ -152,9 +153,6 @@ const light = (state = initialState.light, action) => {
 
 		case UPDATE_LIGHT_Y_INCREMENT:
 			return updatePropsToAction(state, action, "yIncrement");
-
-		case UPDATE_LIGHT_START:
-			return updatePropsToAction(state, action, "xStart", "yStart");
 
 		default:
 			return state;
@@ -423,6 +421,22 @@ const Canvas = (function() {
 	};
 })();
 
+const LightMouseAnimator = (function() {
+	const start = () =>
+		document.body.addEventListener("mousemove", _handleMousemove);
+
+	const stop = () =>
+		document.body.removeEventListener("mousemove", _handleMousemove);
+
+	const _handleMousemove = evt =>
+		store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
+
+	return {
+		start,
+		stop
+	};
+})();
+
 const Ticker = (function() {
 	let tickers = {},
 		listeners = {
@@ -441,6 +455,11 @@ const Ticker = (function() {
 
 	const updateIncrement = (id, value) => {
 		_updateTickerProp(id, "increment", value);
+		return Ticker;
+	};
+
+	const updateReset = (id, value) => {
+		_updateTickerProp(id, "reset", value);
 		return Ticker;
 	};
 
@@ -520,6 +539,7 @@ const Ticker = (function() {
 	return {
 		add,
 		updateIncrement,
+		updateReset,
 		remove,
 		on,
 		off,
@@ -527,65 +547,10 @@ const Ticker = (function() {
 	};
 })();
 
-const LightAnimator = (function() {
-	let last = {},
-		_handleBefore, _handleTick, _handleAfter;
+const LightAutoAnimator = (function() {
+	let _handleBefore, _handleTick, _handleAfter;
 
-	const _hasChanged = (currentValue, lastValue) => lastValue == null || currentValue !== lastValue;
-
-	const update = element => {
-		_beforeFirstUpdate(element);
-
-		return () => {
-			let state = store.getState(),
-				{ autoMove, xIncrement, yIncrement, xStart, yStart } = state.light;
-
-			_updateBehaviourIfChanged(autoMove, xIncrement, yIncrement, xStart, yStart);
-			_updateAnimationIfChanged(autoMove, xIncrement, yIncrement);
-
-			last = updateProps(last, {
-				autoMove,
-				xIncrement,
-				yIncrement,
-				xStart,
-				yStart
-			});
-		};
-	};
-
-	const _beforeFirstUpdate = element => {
-		element.addEventListener("click", evt => {
-			store.dispatch(toggleLightAutomaticMovement());
-			store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
-		});
-	};
-
-	const _updateBehaviourIfChanged = (autoMove, xIncrement, yIncrement, xStart, yStart) => {
-		if (_hasChanged(autoMove, last.autoMove)) {
-			if (autoMove) {
-				_stopFollowingPointer();
-				_startAnimation(xIncrement, yIncrement, xStart, yStart);
-			}
-			else {
-				_stopAnimation();
-				_startFollowingPointer();
-			}
-		}
-	};
-
-	const _updateAnimationIfChanged = (autoMove, xIncrement, yIncrement) => {
-		if (autoMove && (_hasChanged(xIncrement, last.xIncrement) || _hasChanged(yIncrement, last.yIncrement))) {
-			_updateAnimationTrajectory(xIncrement, yIncrement);
-		}
-	};
-
-	const _updateAnimationTrajectory = (xIncrement, yIncrement) => {
-		Ticker
-			.updateIncrement("x", xIncrement)
-			.updateIncrement("y", yIncrement);
-	};
-
-	const _startAnimation = (xIncrement, yIncrement, xStart, yStart) => {
+	const start = (xIncrement, yIncrement, xStart, yStart) => {
 		let state, source, gap, width, height, x, y;
 
 		_handleBefore = () => {
@@ -613,14 +578,9 @@ const LightAnimator = (function() {
 			.add("y", yStart, yIncrement, _resetOnLap);
 	};
 
-	const _stopAnimation = () => {
+	const stop = () => {
 		let newXStart = Ticker.getValueFrom("x"),
 			newYStart = Ticker.getValueFrom("y");
-
-		last = updateProps(last, {
-			xStart: newXStart,
-			yStart: newYStart
-		});
 
 		Ticker
 			.off("before", _handleBefore)
@@ -628,6 +588,17 @@ const LightAnimator = (function() {
 			.off("after", _handleAfter)
 			.remove("x")
 			.remove("y");
+
+		return {
+			xStart: newXStart,
+			yStart: newYStart
+		};
+	};
+
+	const update = (xIncrement, yIncrement) => {
+		Ticker
+			.updateIncrement("x", xIncrement)
+			.updateIncrement("y", yIncrement);
 	};
 
 	const _calculateAxisIncrement = (value, canvasMeasure, phraseMeasure) => {
@@ -639,14 +610,67 @@ const LightAnimator = (function() {
 
 	const _resetOnLap = value => value % 360;
 
-	const _startFollowingPointer = () =>
-		document.body.addEventListener("mousemove", _handleMousemove);
+	return {
+		start,
+		stop,
+		update
+	};
+})();
 
-	const _stopFollowingPointer = () =>
-		document.body.removeEventListener("mousemove", _handleMousemove);
+const LightAnimator = (function() {
+	let last = {};
 
-	const _handleMousemove = evt =>
-		store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
+	const update = element => {
+		_beforeFirstUpdate(element);
+
+		return () => {
+			let state = store.getState(),
+				{ autoMove, xIncrement, yIncrement} = state.light;
+
+			let xStart = last.xStart == null ? state.light.xStart : last.xStart,
+				yStart = last.yStart == null ? state.light.yStart : last.yStart;
+
+			_updateBehaviourIfChanged(autoMove, xIncrement, yIncrement, xStart, yStart);
+			_updateAnimationTrajectoryIfChanged(autoMove, xIncrement, yIncrement);
+
+			last = updateProps(last, {
+				autoMove,
+				xIncrement,
+				yIncrement
+			});
+		};
+	};
+
+	const _beforeFirstUpdate = element => {
+		element.addEventListener("click", evt => {
+			store.dispatch(toggleLightAutomaticMovement());
+			store.dispatch(updateLightCoord(evt.clientX, evt.clientY));
+		});
+	};
+
+	const _updateBehaviourIfChanged = (autoMove, xIncrement, yIncrement, xStart, yStart) => {
+		if (hasChanged(autoMove, last.autoMove)) {
+			if (autoMove) {
+				LightMouseAnimator.stop();
+				LightAutoAnimator.start(xIncrement, yIncrement, xStart, yStart);
+			}
+			else {
+				let { xStart, yStart } = LightAutoAnimator.stop();
+				LightMouseAnimator.start();
+
+				last = updateProps(last, {
+					xStart,
+					yStart
+				});
+			}
+		}
+	};
+
+	const _updateAnimationTrajectoryIfChanged = (autoMove, xIncrement, yIncrement) => {
+		if (autoMove && (hasChanged(xIncrement, last.xIncrement) || hasChanged(yIncrement, last.yIncrement))) {
+			LightAutoAnimator.update(xIncrement, yIncrement);
+		}
+	};
 
 	return {
 		update
@@ -685,9 +709,11 @@ const LightOrigin = (function() {
 
 const ControlView = (function() {
 	const render = (input, value) => {
-		switch (input.type) {
-			case "range": _changeInputProperty(input, "value", value);
-			case "checkbox": _changeInputProperty(input, "checked", value);
+		if (input.type === "checkbox") {
+			_changeInputProperty(input, "checked", value);
+		}
+		else if (input.type === "range") {
+			_changeInputProperty(input, "value", value);
 		}
 	};
 
@@ -713,22 +739,16 @@ const Control = (function() {
 	};
 
 	const _beforeFirstBind = (input, action) => {
-		switch (input.type) {
-			case "range": _dealWithRange(input, action);
-			case "checkbox": _dealWithCheckbox(input, action);
+		if (input.type === "range") {
+			input.addEventListener("input", evt => {
+				store.dispatch(action(parseFloat(evt.target.value)));
+			});
 		}
-	};
-
-	const _dealWithRange = (input, action) => {
-		input.addEventListener("input", evt => {
-			store.dispatch(action(parseFloat(evt.target.value)));
-		});
-	};
-
-	const _dealWithCheckbox = (input, action) => {
-		input.addEventListener("change", evt => {
-			store.dispatch(action(evt.target.checked));
-		});
+		else if (input.type === "checkbox") {
+			input.addEventListener("change", evt => {
+				store.dispatch(action(evt.target.checked));
+			});
+		}
 	};
 
 	return {
